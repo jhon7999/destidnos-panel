@@ -1,0 +1,673 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Destidnos — Panel de gestión</title>
+<style>
+  :root {
+    --bg:#1a1f2e;--bg2:#242938;--bg3:#2e3347;--border:rgba(255,255,255,0.08);
+    --border2:rgba(255,255,255,0.14);--text:#e2e5f0;--text2:#9ba3b8;--text3:#6b748a;
+    --accent:#6c63ff;--accent2:#8b84ff;--green:#1db584;--green2:#0f6e4f;
+    --green-bg:rgba(29,181,132,0.12);--amber:#f5a623;--amber-bg:rgba(245,166,35,0.12);
+    --red:#e05c5c;--red-bg:rgba(224,92,92,0.12);--blue:#4ba3f5;--blue-bg:rgba(75,163,245,0.12);
+    --radius:8px;--radius-lg:12px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:-apple-system,BlinkMacSystemFont,'Inter','Segoe UI',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:14px;line-height:1.5;}
+  .layout{display:flex;height:100vh;overflow:hidden;}
+  .sidebar{width:240px;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;}
+  .sidebar-brand{padding:20px 16px 16px;border-bottom:1px solid var(--border);}
+  .brand-row{display:flex;align-items:center;gap:10px;}
+  .brand-dot{width:32px;height:32px;border-radius:8px;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:#fff;flex-shrink:0;}
+  .brand-name{font-size:14px;font-weight:600;}.brand-sub{font-size:11px;color:var(--text3);}
+  .sidebar-nav{flex:1;padding:12px 8px;overflow-y:auto;}
+  .nav-section{font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;padding:12px 8px 6px;}
+  .nav-item{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:var(--radius);cursor:pointer;color:var(--text2);font-size:13px;transition:background .15s,color .15s;margin-bottom:2px;border:none;background:transparent;width:100%;text-align:left;}
+  .nav-item:hover{background:var(--bg3);color:var(--text);}
+  .nav-item.active{background:rgba(108,99,255,.18);color:var(--accent2);}
+  .nav-badge{margin-left:auto;border-radius:10px;padding:1px 7px;font-size:10px;font-weight:600;background:var(--accent);color:#fff;}
+  .sidebar-footer{padding:12px 16px;border-top:1px solid var(--border);}
+  .agent-row{display:flex;align-items:center;gap:8px;}
+  .agent-avatar{width:28px;height:28px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;color:#fff;position:relative;flex-shrink:0;}
+  .agent-online{width:8px;height:8px;border-radius:50%;background:var(--green);border:2px solid var(--bg2);position:absolute;bottom:-1px;right:-1px;}
+  .agent-name{font-size:12px;font-weight:500;}.agent-role{font-size:11px;color:var(--text3);}
+  .lock-indicator{margin-left:auto;font-size:10px;padding:2px 8px;border-radius:8px;font-weight:500;}
+  .lock-indicator.active{background:var(--green-bg);color:var(--green);}
+  .lock-indicator.locked{background:var(--red-bg);color:var(--red);}
+  .main{flex:1;display:flex;flex-direction:column;overflow:hidden;}
+  .topbar{height:56px;background:var(--bg2);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 20px;gap:12px;flex-shrink:0;}
+  .topbar-title{font-size:15px;font-weight:600;flex:1;}.topbar-meta{font-size:12px;color:var(--text3);}
+  .btn{padding:7px 14px;border-radius:var(--radius);font-size:12px;font-weight:500;cursor:pointer;border:1px solid transparent;transition:all .15s;display:inline-flex;align-items:center;gap:6px;}
+  .btn-primary{background:var(--accent);color:#fff;border-color:var(--accent);}
+  .btn-primary:hover{background:var(--accent2);}
+  .btn-secondary{background:var(--bg3);color:var(--text2);border-color:var(--border2);}
+  .btn-secondary:hover{color:var(--text);}
+  .content{flex:1;overflow-y:auto;padding:20px;}
+  .section{display:none;}.section.active{display:block;}
+  .metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px;}
+  .metric-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px;}
+  .metric-val{font-size:26px;font-weight:600;margin-bottom:2px;}
+  .metric-lbl{font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.4px;}
+  .metric-card.green .metric-val{color:var(--green);}.metric-card.amber .metric-val{color:var(--amber);}
+  .metric-card.blue .metric-val{color:var(--blue);}.metric-card.red .metric-val{color:var(--red);}
+  .kanban-wrap{display:flex;gap:12px;overflow-x:auto;padding-bottom:8px;min-height:400px;}
+  .k-col{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:12px;min-width:200px;width:200px;flex-shrink:0;}
+  .k-col-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+  .k-col-title{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;}
+  .k-count{background:var(--bg3);border-radius:8px;padding:1px 7px;font-size:10px;color:var(--text3);}
+  .k-card{background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:10px;margin-bottom:8px;cursor:grab;transition:border-color .15s,opacity .15s;}
+  .k-card:active{cursor:grabbing;opacity:.6;}.k-card.dragging{opacity:.3;}
+  .k-card-name{font-size:12px;font-weight:500;margin-bottom:3px;}
+  .k-card-preview{font-size:11px;color:var(--text3);margin-bottom:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:170px;}
+  .k-card-footer{display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
+  .k-tag{font-size:10px;padding:2px 7px;border-radius:6px;font-weight:500;}
+  .tag-hot{background:rgba(224,92,92,.15);color:var(--red);}.tag-warm{background:var(--amber-bg);color:var(--amber);}
+  .tag-cold{background:var(--blue-bg);color:var(--blue);}.tag-won{background:var(--green-bg);color:var(--green);}
+  .k-assignee{font-size:10px;color:var(--text3);}
+  .k-drop-zone{min-height:40px;border:1.5px dashed transparent;border-radius:var(--radius);transition:border-color .15s,background .15s;}
+  .k-drop-zone.over{border-color:var(--accent);background:rgba(108,99,255,.06);}
+  .two-col{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+  .card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px;margin-bottom:16px;}
+  .card-title{font-size:13px;font-weight:600;margin-bottom:12px;display:flex;align-items:center;gap:8px;}
+  .asesor-item{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);}
+  .asesor-item:last-child{border-bottom:none;padding-bottom:0;}
+  .av{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;flex-shrink:0;}
+  .av-1{background:rgba(108,99,255,.2);color:var(--accent2);}
+  .av-2{background:rgba(224,92,92,.15);color:var(--red);}
+  .av-3{background:var(--amber-bg);color:var(--amber);}
+  .av-4{background:var(--blue-bg);color:var(--blue);}
+  .av-5{background:var(--green-bg);color:var(--green);}
+  .asesor-info{flex:1;min-width:0;}.asesor-name{font-size:12px;font-weight:500;}.asesor-meta{font-size:11px;color:var(--text3);}
+  .asesor-chats{font-size:11px;font-weight:600;color:var(--accent2);background:rgba(108,99,255,.12);padding:2px 8px;border-radius:6px;white-space:nowrap;}
+  .toggle-wrap{position:relative;width:36px;height:20px;flex-shrink:0;}
+  .toggle-wrap input{position:absolute;opacity:0;width:100%;height:100%;cursor:pointer;z-index:1;margin:0;}
+  .toggle-track{width:36px;height:20px;border-radius:10px;background:var(--bg3);border:1px solid var(--border2);display:block;transition:background .2s;position:relative;}
+  .toggle-wrap input:checked+.toggle-track{background:var(--green2);border-color:var(--green);}
+  .toggle-thumb{width:14px;height:14px;border-radius:50%;background:var(--text3);position:absolute;top:2px;left:2px;transition:transform .2s,background .2s;pointer-events:none;}
+  .toggle-wrap input:checked~.toggle-thumb{transform:translateX(16px);background:#fff;}
+  .queue-item{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border);}
+  .queue-item:last-child{border-bottom:none;}
+  .q-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+  .q-pending{background:var(--amber);}.q-assigned{background:var(--green);}
+  .q-name{flex:1;font-size:12px;font-weight:500;}.q-time{font-size:11px;color:var(--text3);}
+  .q-badge{font-size:10px;padding:2px 7px;border-radius:6px;}
+  .qb-pending{background:var(--amber-bg);color:var(--amber);}.qb-assigned{background:var(--green-bg);color:var(--green);}
+  .result-msg{margin-top:8px;font-size:12px;text-align:center;min-height:18px;}
+  .result-ok{color:var(--green);}.result-err{color:var(--red);}
+  .lock-status-bar{display:flex;align-items:center;gap:12px;padding:14px 16px;border-radius:var(--radius-lg);border:1px solid;margin-bottom:16px;}
+  .lock-status-bar.active{background:var(--green-bg);border-color:rgba(29,181,132,.25);}
+  .lock-status-bar.blocked{background:var(--red-bg);border-color:rgba(224,92,92,.25);}
+  .lock-icon{font-size:22px;}.lock-status-text{font-weight:600;font-size:14px;}.lock-status-sub{font-size:12px;color:var(--text2);margin-top:1px;}
+  .form-row{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
+  .form-label{font-size:12px;color:var(--text2);width:110px;flex-shrink:0;}
+  .form-input{background:var(--bg3);border:1px solid var(--border2);color:var(--text);border-radius:var(--radius);padding:7px 10px;font-size:13px;outline:none;}
+  .form-input:focus{border-color:var(--accent);}
+  .otp-code{font-size:32px;font-weight:700;letter-spacing:8px;text-align:center;padding:16px;background:var(--bg3);border-radius:var(--radius);border:1px solid var(--border);color:var(--accent2);font-family:monospace;margin-bottom:8px;}
+  .otp-progress{height:3px;background:var(--bg3);border-radius:2px;overflow:hidden;margin-bottom:6px;}
+  .otp-fill{height:100%;background:var(--green);transition:width .4s linear;border-radius:2px;}
+  .otp-timer{font-size:11px;color:var(--text3);text-align:center;margin-bottom:12px;}
+  .otp-verify-row{display:flex;gap:8px;}
+  .otp-verify-row input{flex:1;background:var(--bg3);border:1px solid var(--border2);color:var(--text);border-radius:var(--radius);padding:8px 12px;font-size:16px;letter-spacing:5px;font-family:monospace;text-align:center;outline:none;}
+  .otp-verify-row input:focus{border-color:var(--accent);}
+  .code-block{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:14px;font-family:monospace;font-size:12px;color:var(--accent2);line-height:1.9;overflow-x:auto;}
+  .step-list{counter-reset:steps;}
+  .step{display:flex;gap:12px;padding:12px 0;border-bottom:1px solid var(--border);}
+  .step:last-child{border-bottom:none;}
+  .step-num{width:24px;height:24px;border-radius:50%;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;margin-top:1px;}
+  .step-content{flex:1;}.step-title{font-size:13px;font-weight:500;margin-bottom:4px;}
+  .step-desc{font-size:12px;color:var(--text2);line-height:1.6;}
+  .url-box{background:var(--bg);border:1px solid var(--border2);border-radius:var(--radius);padding:8px 12px;font-family:monospace;font-size:12px;color:var(--blue);word-break:break-all;margin-top:6px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:8px;}
+  .url-box:hover{border-color:var(--accent);}
+  .copy-lbl{font-size:10px;color:var(--text3);white-space:nowrap;}
+  .tag-ok{background:var(--green-bg);color:var(--green);font-size:10px;padding:2px 8px;border-radius:6px;font-weight:500;}
+  .tag-pending{background:var(--amber-bg);color:var(--amber);font-size:10px;padding:2px 8px;border-radius:6px;font-weight:500;}
+  ::-webkit-scrollbar{width:5px;height:5px;}::-webkit-scrollbar-track{background:transparent;}::-webkit-scrollbar-thumb{background:var(--bg3);border-radius:3px;}
+  .toast{position:fixed;bottom:24px;right:24px;background:var(--bg2);border:1px solid var(--border2);border-radius:var(--radius-lg);padding:12px 18px;font-size:13px;color:var(--text);box-shadow:0 4px 20px rgba(0,0,0,.4);transform:translateY(80px);opacity:0;transition:all .25s;z-index:999;max-width:320px;}
+  .toast.show{transform:translateY(0);opacity:1;}
+  .toast.ok{border-left:3px solid var(--green);}.toast.err{border-left:3px solid var(--red);}
+</style>
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <div class="brand-row">
+        <div class="brand-dot">D</div>
+        <div><div class="brand-name">Destidnos</div><div class="brand-sub">Panel de gestión</div></div>
+      </div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section">Principal</div>
+      <button class="nav-item active" onclick="go('dashboard',this)">
+        <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+        Dashboard
+      </button>
+      <button class="nav-item" onclick="go('embudo',this)">
+        <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M3 4h18v2l-7 7v7l-4-2v-5L3 6V4z"/></svg>
+        Embudo de ventas
+        <span class="nav-badge" id="badge-embudo">8</span>
+      </button>
+      <button class="nav-item" onclick="go('asignacion',this)">
+        <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><circle cx="9" cy="7" r="4"/><path d="M3 21v-2a4 4 0 014-4h4a4 4 0 014 4v2"/><path d="M16 3.13a4 4 0 010 7.75M21 21v-2a4 4 0 00-3-3.87"/></svg>
+        Asignación
+        <span class="nav-badge" id="badge-pending" style="background:var(--amber)">4</span>
+      </button>
+      <div class="nav-section">Sistema</div>
+      <button class="nav-item" onclick="go('bloqueo',this)">
+        <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+        Horario y bloqueo
+      </button>
+      <button class="nav-item" onclick="go('config',this)">
+        <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v2m0 16v2M4.22 4.22l1.42 1.42m12.72 12.72l1.42 1.42M2 12h2m16 0h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+        Configuración
+      </button>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="agent-row">
+        <div class="agent-avatar">IA<div class="agent-online"></div></div>
+        <div><div class="agent-name">Martha (Admin)</div><div class="agent-role">Administrador</div></div>
+        <span class="lock-indicator active" id="sidebar-lock">Activo</span>
+      </div>
+    </div>
+  </aside>
+
+  <div class="main">
+    <header class="topbar">
+      <div class="topbar-title" id="topbar-title">Dashboard</div>
+      <div class="topbar-meta" id="topbar-time"></div>
+      <button class="btn btn-secondary" onclick="syncChatwoot()">
+        <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 2v6h-6"/><path d="M3 12a9 9 0 0115-6.7L21 8M3 22v-6h6"/><path d="M21 12a9 9 0 01-15 6.7L3 16"/></svg>
+        Sincronizar Chatwoot
+      </button>
+    </header>
+
+    <div class="content">
+
+      <!-- DASHBOARD -->
+      <div id="sec-dashboard" class="section active">
+        <div class="metrics">
+          <div class="metric-card green"><div class="metric-val" id="m-activos">2</div><div class="metric-lbl">Asesores activos</div></div>
+          <div class="metric-card amber"><div class="metric-val" id="m-pendientes">4</div><div class="metric-lbl">Sin asignar</div></div>
+          <div class="metric-card blue"><div class="metric-val" id="m-abiertos">—</div><div class="metric-lbl">Conversaciones abiertas</div></div>
+          <div class="metric-card red"><div class="metric-val" id="m-sistema">—</div><div class="metric-lbl">Estado sistema</div></div>
+        </div>
+        <div class="two-col">
+          <div class="card">
+            <div class="card-title">Asesores del equipo</div>
+            <div class="asesor-item"><div class="av av-2">CP</div><div class="asesor-info"><div class="asesor-name">Camila Pineda</div><div class="asesor-meta">reservas@destidnos.com · ID 3</div></div></div>
+            <div class="asesor-item"><div class="av av-1">CD</div><div class="asesor-info"><div class="asesor-name">Cristian David Pinilla</div><div class="asesor-meta">cristianpinilla0@gmail.com · ID 6</div></div></div>
+            <div class="asesor-item"><div class="av av-3">EG</div><div class="asesor-info"><div class="asesor-name">Esnedy Gutiérrez</div><div class="asesor-meta">servicioalcliente@destidnos.com · ID 5</div></div></div>
+            <div class="asesor-item"><div class="av av-4">JD</div><div class="asesor-info"><div class="asesor-name">Juan Diego Correa</div><div class="asesor-meta">juanito.dt1996@gmail.com · ID 7</div></div></div>
+            <div class="asesor-item"><div class="av av-5">LS</div><div class="asesor-info"><div class="asesor-name">Laura Sarria</div><div class="asesor-meta">administracion@destidnos.com · ID 2</div></div></div>
+          </div>
+          <div class="card">
+            <div class="card-title">Estado de conexión n8n</div>
+            <div class="step-list">
+              <div class="step"><div class="step-num">1</div><div class="step-content"><div class="step-title">Workflow 1 — Round Robin</div><div class="step-desc">Asigna manualmente desde el panel</div></div></div>
+              <div class="step"><div class="step-num">2</div><div class="step-content"><div class="step-title">Workflow 2 — Chat nuevo</div><div class="step-desc">Auto-asigna al asesor con menos carga</div></div></div>
+              <div class="step"><div class="step-num">3</div><div class="step-content"><div class="step-title">Workflow 3 — OTP / Horario</div><div class="step-desc">Control de bloqueo y códigos de emergencia</div></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- EMBUDO -->
+      <div id="sec-embudo" class="section">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+          <div style="font-size:12px;color:var(--text3)">Arrastra los chats entre etapas · Los cambios son locales (próximamente sincronizados con Chatwoot vía etiquetas)</div>
+          <button class="btn btn-primary" onclick="addCard()">+ Nuevo chat</button>
+        </div>
+        <div class="kanban-wrap" id="kanban-board"></div>
+      </div>
+
+      <!-- ASIGNACIÓN -->
+      <div id="sec-asignacion" class="section">
+        <div class="two-col">
+          <div>
+            <div class="card">
+              <div class="card-title">Asesores disponibles hoy</div>
+              <div id="asesores-list"></div>
+            </div>
+            <button class="btn btn-primary" style="width:100%;margin-bottom:6px" onclick="runRoundRobin()">
+              <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 2v6h-6"/><path d="M3 12a9 9 0 0115-6.7L21 8"/></svg>
+              Asignar equitativamente (Round-Robin)
+            </button>
+            <div class="result-msg" id="assign-result"></div>
+          </div>
+          <div class="card">
+            <div class="card-title">Cola de chats sin asignar</div>
+            <div id="queue-list"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- BLOQUEO -->
+      <div id="sec-bloqueo" class="section">
+        <div class="lock-status-bar active" id="lock-bar">
+          <div class="lock-icon" id="lock-icon">🔓</div>
+          <div>
+            <div class="lock-status-text" id="lock-text">Sistema activo — horario laboral</div>
+            <div class="lock-status-sub" id="lock-sub">Los chats se asignan normalmente</div>
+          </div>
+        </div>
+        <div class="two-col">
+          <div class="card">
+            <div class="card-title">Horario laboral (Bogotá)</div>
+            <div class="form-row"><span class="form-label">Inicio</span><input type="time" class="form-input" id="time-start" value="07:00"></div>
+            <div class="form-row"><span class="form-label">Fin</span><input type="time" class="form-input" id="time-end" value="22:00"></div>
+            <div style="font-size:11px;color:var(--text3);margin:8px 0 12px">Fuera de este horario ningún chat se asignará aunque alguien se conecte a Chatwoot.</div>
+            <button class="btn btn-primary" style="width:100%" onclick="saveSchedule()">Guardar horario</button>
+          </div>
+          <div class="card">
+            <div class="card-title">Código de emergencia TOTP</div>
+            <div style="font-size:11px;color:var(--text3);margin-bottom:10px">Cambia cada 30 segundos. Comparte solo en urgencias. El acceso NO activa asignación automática.</div>
+            <div class="otp-code" id="otp-display">000000</div>
+            <div class="otp-progress"><div class="otp-fill" id="otp-fill" style="width:100%"></div></div>
+            <div class="otp-timer" id="otp-timer">Expira en 30s</div>
+            <div class="otp-verify-row">
+              <input type="text" maxlength="6" placeholder="Ingresar código" id="otp-input" oninput="this.value=this.value.replace(/\D/g,'')">
+              <button class="btn btn-secondary" onclick="verifyOTP()">Verificar</button>
+            </div>
+            <div class="result-msg" id="otp-result"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CONFIG -->
+      <div id="sec-config" class="section">
+        <div class="card">
+          <div class="card-title">Guía de configuración paso a paso</div>
+          <div class="step-list">
+
+            <div class="step">
+              <div class="step-num">1</div>
+              <div class="step-content">
+                <div class="step-title">Crear credencial en n8n</div>
+                <div class="step-desc">
+                  En n8n → <strong>Credentials</strong> → New → busca <strong>"Header Auth"</strong><br>
+                  Name: <code>Chatwoot API Key</code><br>
+                  Name (header): <code>api_access_token</code><br>
+                  Value: <code>k15ySN1YFJh9PjqoS3ow1DCB</code>
+                </div>
+              </div>
+            </div>
+
+            <div class="step">
+              <div class="step-num">2</div>
+              <div class="step-content">
+                <div class="step-title">Activar los 3 workflows</div>
+                <div class="step-desc">
+                  En n8n, entra a cada workflow y activa el toggle <strong>"Active"</strong> (arriba a la derecha).<br>
+                  Deben quedar en verde. Si pide asignar credencial, selecciona <em>Chatwoot API Key</em>.
+                </div>
+              </div>
+            </div>
+
+            <div class="step">
+              <div class="step-num">3</div>
+              <div class="step-content">
+                <div class="step-title">Copiar URL del Webhook 2 → Chatwoot</div>
+                <div class="step-desc">
+                  En n8n, abre el <strong>Workflow 2</strong> → click en el nodo <em>"Webhook - Chatwoot evento"</em> → copia la URL de producción.<br>
+                  Luego ve a Chatwoot → Ajustes → Integraciones → Webhooks → <strong>Nuevo webhook</strong><br>
+                  Pega la URL y activa solo el evento: <strong>conversation_created</strong>
+                </div>
+                <div class="url-box" onclick="copyText(this,'https://n8n.jmflow.tech/webhook/chatwoot-nuevo-chat')">
+                  https://n8n.jmflow.tech/webhook/chatwoot-nuevo-chat
+                  <span class="copy-lbl" id="copy1">Copiar</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="step">
+              <div class="step-num">4</div>
+              <div class="step-content">
+                <div class="step-title">Desactivar asignación automática de Chatwoot</div>
+                <div class="step-desc">
+                  Chatwoot → Ajustes → Entradas → WhatsApp Destidnos → Colaboradores<br>
+                  Desactiva <strong>"Enable automatic conversation assignment"</strong><br>
+                  Así n8n toma el control total de las asignaciones.
+                </div>
+              </div>
+            </div>
+
+            <div class="step">
+              <div class="step-num">5</div>
+              <div class="step-content">
+                <div class="step-title">Desplegar este panel en Dokploy</div>
+                <div class="step-desc">
+                  En Dokploy → JMFlow → Create Service → <strong>Static</strong><br>
+                  Sube el archivo <code>panel-destidnos.html</code> como <code>index.html</code><br>
+                  Asigna un dominio ej: <code>panel.jmflow.tech</code>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">URLs de los webhooks (todas activas)</div>
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <div>
+              <div style="font-size:11px;color:var(--text3);margin-bottom:4px">Workflow 1 — Asignación manual round-robin</div>
+              <div class="url-box" onclick="copyText(this,'https://n8n.jmflow.tech/webhook/asignar-chats')">
+                https://n8n.jmflow.tech/webhook/asignar-chats <span class="copy-lbl">Copiar</span>
+              </div>
+            </div>
+            <div>
+              <div style="font-size:11px;color:var(--text3);margin-bottom:4px">Workflow 2 — Nuevo chat (va en Chatwoot Webhooks)</div>
+              <div class="url-box" onclick="copyText(this,'https://n8n.jmflow.tech/webhook/chatwoot-nuevo-chat')">
+                https://n8n.jmflow.tech/webhook/chatwoot-nuevo-chat <span class="copy-lbl">Copiar</span>
+              </div>
+            </div>
+            <div>
+              <div style="font-size:11px;color:var(--text3);margin-bottom:4px">Workflow 3 — Verificar OTP</div>
+              <div class="url-box" onclick="copyText(this,'https://n8n.jmflow.tech/webhook/verificar-otp')">
+                https://n8n.jmflow.tech/webhook/verificar-otp <span class="copy-lbl">Copiar</span>
+              </div>
+            </div>
+            <div>
+              <div style="font-size:11px;color:var(--text3);margin-bottom:4px">Workflow 3 — Estado sistema</div>
+              <div class="url-box" onclick="copyText(this,'https://n8n.jmflow.tech/webhook/estado-sistema')">
+                https://n8n.jmflow.tech/webhook/estado-sistema <span class="copy-lbl">Copiar</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">IDs de agentes confirmados</div>
+          <div class="code-block">
+Camila Pineda        →  id: 3   reservas@destidnos.com
+Cristian David       →  id: 6   cristianpinilla0@gmail.com
+Esnedy Gutiérrez     →  id: 5   servicioalcliente@destidnos.com
+Juan Diego Correa    →  id: 7   juanito.dt1996@gmail.com
+Laura Sarria         →  id: 2   administracion@destidnos.com
+IA DESTIDNOS Martha  →  id: 1   mosquerajhonalberto@gmail.com
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── CONFIG REAL ───────────────────────────────────────────
+const CHATWOOT_URL = 'https://crm.jmflow.tech';
+const API_KEY      = 'k15ySN1YFJh9PjqoS3ow1DCB';
+const ACCOUNT_ID   = '2';
+const N8N          = 'https://n8n.jmflow.tech';
+const WH = {
+  asignar: N8N + '/webhook/asignar-chats',
+  nuevo:   N8N + '/webhook/chatwoot-nuevo-chat',
+  otp:     N8N + '/webhook/verificar-otp',
+  horario: N8N + '/webhook/guardar-horario',
+  estado:  N8N + '/webhook/estado-sistema',
+};
+const AGENTES = [
+  {id:3,  nombre:'Camila Pineda',     init:'CP', cls:'av-2', activo:true,  asignados:0},
+  {id:6,  nombre:'Cristian David',    init:'CD', cls:'av-1', activo:true,  asignados:0},
+  {id:5,  nombre:'Esnedy Gutiérrez',  init:'EG', cls:'av-3', activo:false, asignados:0},
+  {id:7,  nombre:'Juan Diego Correa', init:'JD', cls:'av-4', activo:false, asignados:0},
+  {id:2,  nombre:'Laura Sarria',      init:'LS', cls:'av-5', activo:false, asignados:0},
+];
+// ─────────────────────────────────────────────────────────
+
+const KANBAN = {
+  nuevo:      {title:'Nuevo',      col:'#6c63ff', items:[
+    {id:'k1',name:'Chat sin asignar',preview:'Nuevo lead entrante',tag:'cold',asesor:''},
+  ]},
+  contactado: {title:'Contactado', col:'#4ba3f5', items:[]},
+  cotizado:   {title:'Cotizado',   col:'#f5a623', items:[]},
+  negociando: {title:'Negociando', col:'#e05c5c', items:[]},
+  cerrado:    {title:'Cerrado',    col:'#1db584', items:[]},
+};
+const TAG_LBL={hot:'Caliente',warm:'Tibio',cold:'Frío',won:'Ganado'};
+const TAG_CLS={hot:'tag-hot',warm:'tag-warm',cold:'tag-cold',won:'tag-won'};
+
+const PENDING=[
+  {id:'p1',name:'Chat pendiente 1',time:'en cola',assigned:false,assignee:''},
+  {id:'p2',name:'Chat pendiente 2',time:'en cola',assigned:false,assignee:''},
+  {id:'p3',name:'Chat pendiente 3',time:'en cola',assigned:false,assignee:''},
+  {id:'p4',name:'Chat pendiente 4',time:'en cola',assigned:false,assignee:''},
+];
+let rrIdx=0;
+
+// NAV
+function go(id,btn){
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(b=>b.classList.remove('active'));
+  document.getElementById('sec-'+id).classList.add('active');
+  btn.classList.add('active');
+  const T={dashboard:'Dashboard',embudo:'Embudo de ventas',asignacion:'Asignación equitativa',bloqueo:'Horario y bloqueo',config:'Configuración'};
+  document.getElementById('topbar-title').textContent=T[id]||id;
+  if(id==='embudo') renderKanban();
+  if(id==='asignacion') renderAsig();
+  if(id==='bloqueo'){renderLock();startOTP();}
+}
+
+// CLOCK
+function tick(){
+  const now=new Date();
+  document.getElementById('topbar-time').textContent=
+    now.toLocaleString('es-CO',{timeZone:'America/Bogota',weekday:'short',hour:'2-digit',minute:'2-digit'})+' Bogotá';
+}
+setInterval(tick,10000);tick();
+
+// KANBAN
+function renderKanban(){
+  const board=document.getElementById('kanban-board');
+  board.innerHTML='';
+  Object.entries(KANBAN).forEach(([colId,col])=>{
+    const colEl=document.createElement('div');
+    colEl.className='k-col';
+    colEl.innerHTML=`<div class="k-col-header"><span class="k-col-title" style="color:${col.col}">${col.title}</span><span class="k-count">${col.items.length}</span></div>`;
+    const zone=document.createElement('div');
+    zone.className='k-drop-zone';zone.dataset.col=colId;
+    col.items.forEach(item=>{
+      const card=document.createElement('div');
+      card.className='k-card';card.draggable=true;card.dataset.id=item.id;card.dataset.col=colId;
+      card.innerHTML=`<div class="k-card-name">${item.name}</div><div class="k-card-preview">${item.preview}</div><div class="k-card-footer"><span class="k-tag ${TAG_CLS[item.tag]}">${TAG_LBL[item.tag]}</span>${item.asesor?`<span class="k-assignee">· ${item.asesor}</span>`:''}</div>`;
+      card.addEventListener('dragstart',e=>{e.dataTransfer.setData('text/plain',JSON.stringify({id:item.id,col:colId}));card.classList.add('dragging');});
+      card.addEventListener('dragend',()=>card.classList.remove('dragging'));
+      zone.appendChild(card);
+    });
+    zone.addEventListener('dragover',e=>{e.preventDefault();zone.classList.add('over');});
+    zone.addEventListener('dragleave',()=>zone.classList.remove('over'));
+    zone.addEventListener('drop',e=>{
+      e.preventDefault();zone.classList.remove('over');
+      const{id,col:fromCol}=JSON.parse(e.dataTransfer.getData('text/plain'));
+      if(fromCol===colId)return;
+      const fi=KANBAN[fromCol].items.findIndex(i=>i.id===id);
+      if(fi===-1)return;
+      const[item]=KANBAN[fromCol].items.splice(fi,1);
+      if(colId==='cerrado')item.tag='won';
+      KANBAN[colId].items.push(item);
+      renderKanban();
+      toast('Chat movido a '+col.title,'ok');
+    });
+    colEl.appendChild(zone);board.appendChild(colEl);
+  });
+}
+
+function addCard(){
+  const name=prompt('Nombre del cliente o número:');if(!name)return;
+  const preview=prompt('Destino o mensaje:')||'Nuevo contacto';
+  KANBAN.nuevo.items.push({id:'k'+Date.now(),name,preview,tag:'cold',asesor:''});
+  renderKanban();
+}
+
+// ASIGNACIÓN
+function renderAsig(){
+  const list=document.getElementById('asesores-list');list.innerHTML='';
+  AGENTES.forEach((a,i)=>{
+    const el=document.createElement('div');el.className='asesor-item';
+    el.innerHTML=`<div class="av ${a.cls}">${a.init}</div>
+      <div class="asesor-info"><div class="asesor-name">${a.nombre}</div><div class="asesor-meta">ID ${a.id}</div></div>
+      <span class="asesor-chats">${a.asignados} chats</span>
+      <label class="toggle-wrap" style="margin-left:8px">
+        <input type="checkbox" ${a.activo?'checked':''} onchange="AGENTES[${i}].activo=this.checked;updMetrics()">
+        <span class="toggle-track"></span><span class="toggle-thumb"></span>
+      </label>`;
+    list.appendChild(el);
+  });
+  renderQueue();updMetrics();
+}
+
+function renderQueue(){
+  const list=document.getElementById('queue-list');list.innerHTML='';
+  PENDING.forEach(p=>{
+    const el=document.createElement('div');el.className='queue-item';
+    el.innerHTML=`<span class="q-dot ${p.assigned?'q-assigned':'q-pending'}"></span>
+      <span class="q-name">${p.name}</span><span class="q-time">${p.time}</span>
+      <span class="q-badge ${p.assigned?'qb-assigned':'qb-pending'}">${p.assigned?p.assignee:'Pendiente'}</span>`;
+    list.appendChild(el);
+  });
+}
+
+async function runRoundRobin(){
+  const activos=AGENTES.filter(a=>a.activo);
+  if(!activos.length){showRes('assign-result','⚠ No hay asesores activos seleccionados',false);return;}
+  const pending=PENDING.filter(p=>!p.assigned);
+  if(!pending.length){showRes('assign-result','✓ No hay chats pendientes en cola',true);return;}
+  showRes('assign-result','Conectando con n8n...', true);
+  try{
+    const res=await fetch(WH.asignar,{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({asesores_activos:activos.map(a=>a.id),account_id:ACCOUNT_ID})
+    });
+    const data=await res.json();
+    if(data.ok){
+      pending.forEach((chat,i)=>{
+        const a=activos[rrIdx%activos.length];
+        chat.assigned=true;chat.assignee=a.nombre;a.asignados++;rrIdx++;
+      });
+      renderAsig();
+      showRes('assign-result',`✓ ${pending.length} chats asignados entre ${activos.length} asesores`,true);
+      toast(data.mensaje||'Asignación completada en Chatwoot','ok');
+    } else {
+      showRes('assign-result',data.mensaje||'Error en asignación',false);
+    }
+  } catch(e){
+    // Fallback local si n8n no responde aún
+    pending.forEach((chat,i)=>{
+      const a=activos[rrIdx%activos.length];
+      chat.assigned=true;chat.assignee=a.nombre;a.asignados++;rrIdx++;
+    });
+    renderAsig();
+    showRes('assign-result',`✓ ${pending.length} chats asignados localmente`,true);
+    toast('n8n no respondió — asignación local aplicada','err');
+  }
+}
+
+function updMetrics(){
+  document.getElementById('m-activos').textContent=AGENTES.filter(a=>a.activo).length;
+  document.getElementById('m-pendientes').textContent=PENDING.filter(p=>!p.assigned).length;
+  document.getElementById('badge-pending').textContent=PENDING.filter(p=>!p.assigned).length;
+}
+
+// CHATWOOT SYNC
+async function syncChatwoot(){
+  toast('Sincronizando con Chatwoot...','ok');
+  try{
+    const res=await fetch(`${CHATWOOT_URL}/api/v1/accounts/${ACCOUNT_ID}/conversations?status=open`,{
+      headers:{'api_access_token':API_KEY}
+    });
+    const data=await res.json();
+    const total=data.data?.meta?.all_count||'?';
+    document.getElementById('m-abiertos').textContent=total;
+    toast(`Chatwoot: ${total} conversaciones abiertas`,'ok');
+  }catch(e){toast('Error al conectar con Chatwoot','err');}
+}
+
+// LOCK
+function renderLock(){
+  const now=new Date();
+  const bog=new Date(now.getTime()+now.getTimezoneOffset()*60000+(-5*60)*60000);
+  const min=bog.getHours()*60+bog.getMinutes();
+  const [hs,ms]=document.getElementById('time-start').value.split(':').map(Number);
+  const [he,me]=document.getElementById('time-end').value.split(':').map(Number);
+  const active=min>=hs*60+ms&&min<he*60+me;
+  const bar=document.getElementById('lock-bar');
+  bar.className='lock-status-bar '+(active?'active':'blocked');
+  document.getElementById('lock-icon').textContent=active?'🔓':'🔒';
+  document.getElementById('lock-text').textContent=active?'Sistema activo — horario laboral':'Sistema bloqueado — fuera de horario';
+  document.getElementById('lock-sub').textContent=active
+    ?'Chats se asignan al asesor con menos carga (n8n)'
+    :'Chats quedan en cola hasta las '+document.getElementById('time-start').value+'. Usa OTP para emergencias.';
+  const sl=document.getElementById('sidebar-lock');
+  sl.textContent=active?'Activo':'Bloqueado';
+  sl.className='lock-indicator '+(active?'active':'locked');
+  document.getElementById('m-sistema').textContent=active?'Activo':'Bloqueado';
+}
+
+async function saveSchedule(){
+  const s=document.getElementById('time-start').value;
+  const e=document.getElementById('time-end').value;
+  try{
+    await fetch(WH.horario,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({hora_inicio:s,hora_fin:e})});
+  }catch(err){}
+  renderLock();toast('Horario guardado: '+s+' – '+e,'ok');
+}
+
+// OTP
+let otpTick;
+function genOTP(){
+  const ep=Math.floor(Date.now()/30000);
+  let h=2166136261;const s=String(7391*ep);
+  for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=(h*16777619)>>>0;}
+  return String(100000+(h%900000));
+}
+function startOTP(){
+  if(otpTick)clearInterval(otpTick);
+  function t(){
+    document.getElementById('otp-display').textContent=genOTP();
+    const rem=30-(Math.floor(Date.now()/1000)%30);
+    document.getElementById('otp-fill').style.width=(rem/30*100)+'%';
+    document.getElementById('otp-timer').textContent='Expira en '+rem+'s';
+  }
+  t();otpTick=setInterval(t,500);
+}
+async function verifyOTP(){
+  const v=document.getElementById('otp-input').value.trim();
+  const cur=genOTP();
+  const ep=Math.floor(Date.now()/30000);
+  let h=2166136261;const s=String(7391*(ep-1));
+  for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=(h*16777619)>>>0;}
+  const prev=String(100000+(h%900000));
+  const ok=v===cur||v===prev;
+  document.getElementById('otp-input').value='';
+  try{await fetch(WH.otp,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({codigo:v})});}catch(e){}
+  if(ok){showRes('otp-result','✓ Acceso de emergencia concedido — sin asignación automática',true);toast('Acceso de emergencia activo','ok');}
+  else {showRes('otp-result','✗ Código incorrecto o expirado',false);}
+}
+
+// HELPERS
+function showRes(id,msg,ok){
+  const el=document.getElementById(id);el.textContent=msg;
+  el.className='result-msg '+(ok?'result-ok':'result-err');
+  setTimeout(()=>{el.textContent='';el.className='result-msg';},5000);
+}
+function toast(msg,type){
+  const t=document.getElementById('toast');t.textContent=msg;
+  t.className='toast '+type+' show';setTimeout(()=>t.classList.remove('show'),3500);
+}
+function copyText(el,url){
+  navigator.clipboard.writeText(url||el.dataset.url||el.textContent.trim());
+  const lbl=el.querySelector('.copy-lbl');
+  if(lbl){lbl.textContent='✓ Copiado';setTimeout(()=>lbl.textContent='Copiar',2000);}
+  toast('URL copiada','ok');
+}
+
+// INIT
+renderKanban();renderAsig();renderLock();startOTP();
+setInterval(renderLock,30000);
+</script>
+</body>
+</html>
