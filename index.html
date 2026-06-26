@@ -3,671 +3,1043 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Destidnos — Panel de gestión</title>
+<title>Destidnos Panel</title>
 <style>
-  :root {
-    --bg:#1a1f2e;--bg2:#242938;--bg3:#2e3347;--border:rgba(255,255,255,0.08);
-    --border2:rgba(255,255,255,0.14);--text:#e2e5f0;--text2:#9ba3b8;--text3:#6b748a;
-    --accent:#6c63ff;--accent2:#8b84ff;--green:#1db584;--green2:#0f6e4f;
-    --green-bg:rgba(29,181,132,0.12);--amber:#f5a623;--amber-bg:rgba(245,166,35,0.12);
-    --red:#e05c5c;--red-bg:rgba(224,92,92,0.12);--blue:#4ba3f5;--blue-bg:rgba(75,163,245,0.12);
-    --radius:8px;--radius-lg:12px;
-  }
-  *{box-sizing:border-box;margin:0;padding:0;}
-  body{font-family:-apple-system,BlinkMacSystemFont,'Inter','Segoe UI',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:14px;line-height:1.5;}
-  .layout{display:flex;height:100vh;overflow:hidden;}
-  .sidebar{width:240px;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;}
-  .sidebar-brand{padding:20px 16px 16px;border-bottom:1px solid var(--border);}
-  .brand-row{display:flex;align-items:center;gap:10px;}
-  .brand-dot{width:32px;height:32px;border-radius:8px;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:#fff;flex-shrink:0;}
-  .brand-name{font-size:14px;font-weight:600;}.brand-sub{font-size:11px;color:var(--text3);}
-  .sidebar-nav{flex:1;padding:12px 8px;overflow-y:auto;}
-  .nav-section{font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;padding:12px 8px 6px;}
-  .nav-item{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:var(--radius);cursor:pointer;color:var(--text2);font-size:13px;transition:background .15s,color .15s;margin-bottom:2px;border:none;background:transparent;width:100%;text-align:left;}
-  .nav-item:hover{background:var(--bg3);color:var(--text);}
-  .nav-item.active{background:rgba(108,99,255,.18);color:var(--accent2);}
-  .nav-badge{margin-left:auto;border-radius:10px;padding:1px 7px;font-size:10px;font-weight:600;background:var(--accent);color:#fff;}
-  .sidebar-footer{padding:12px 16px;border-top:1px solid var(--border);}
-  .agent-row{display:flex;align-items:center;gap:8px;}
-  .agent-avatar{width:28px;height:28px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;color:#fff;position:relative;flex-shrink:0;}
-  .agent-online{width:8px;height:8px;border-radius:50%;background:var(--green);border:2px solid var(--bg2);position:absolute;bottom:-1px;right:-1px;}
-  .agent-name{font-size:12px;font-weight:500;}.agent-role{font-size:11px;color:var(--text3);}
-  .lock-indicator{margin-left:auto;font-size:10px;padding:2px 8px;border-radius:8px;font-weight:500;}
-  .lock-indicator.active{background:var(--green-bg);color:var(--green);}
-  .lock-indicator.locked{background:var(--red-bg);color:var(--red);}
-  .main{flex:1;display:flex;flex-direction:column;overflow:hidden;}
-  .topbar{height:56px;background:var(--bg2);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 20px;gap:12px;flex-shrink:0;}
-  .topbar-title{font-size:15px;font-weight:600;flex:1;}.topbar-meta{font-size:12px;color:var(--text3);}
-  .btn{padding:7px 14px;border-radius:var(--radius);font-size:12px;font-weight:500;cursor:pointer;border:1px solid transparent;transition:all .15s;display:inline-flex;align-items:center;gap:6px;}
-  .btn-primary{background:var(--accent);color:#fff;border-color:var(--accent);}
-  .btn-primary:hover{background:var(--accent2);}
-  .btn-secondary{background:var(--bg3);color:var(--text2);border-color:var(--border2);}
-  .btn-secondary:hover{color:var(--text);}
-  .content{flex:1;overflow-y:auto;padding:20px;}
-  .section{display:none;}.section.active{display:block;}
-  .metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px;}
-  .metric-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px;}
-  .metric-val{font-size:26px;font-weight:600;margin-bottom:2px;}
-  .metric-lbl{font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.4px;}
-  .metric-card.green .metric-val{color:var(--green);}.metric-card.amber .metric-val{color:var(--amber);}
-  .metric-card.blue .metric-val{color:var(--blue);}.metric-card.red .metric-val{color:var(--red);}
-  .kanban-wrap{display:flex;gap:12px;overflow-x:auto;padding-bottom:8px;min-height:400px;}
-  .k-col{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:12px;min-width:200px;width:200px;flex-shrink:0;}
-  .k-col-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
-  .k-col-title{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;}
-  .k-count{background:var(--bg3);border-radius:8px;padding:1px 7px;font-size:10px;color:var(--text3);}
-  .k-card{background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:10px;margin-bottom:8px;cursor:grab;transition:border-color .15s,opacity .15s;}
-  .k-card:active{cursor:grabbing;opacity:.6;}.k-card.dragging{opacity:.3;}
-  .k-card-name{font-size:12px;font-weight:500;margin-bottom:3px;}
-  .k-card-preview{font-size:11px;color:var(--text3);margin-bottom:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:170px;}
-  .k-card-footer{display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
-  .k-tag{font-size:10px;padding:2px 7px;border-radius:6px;font-weight:500;}
-  .tag-hot{background:rgba(224,92,92,.15);color:var(--red);}.tag-warm{background:var(--amber-bg);color:var(--amber);}
-  .tag-cold{background:var(--blue-bg);color:var(--blue);}.tag-won{background:var(--green-bg);color:var(--green);}
-  .k-assignee{font-size:10px;color:var(--text3);}
-  .k-drop-zone{min-height:40px;border:1.5px dashed transparent;border-radius:var(--radius);transition:border-color .15s,background .15s;}
-  .k-drop-zone.over{border-color:var(--accent);background:rgba(108,99,255,.06);}
-  .two-col{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
-  .card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px;margin-bottom:16px;}
-  .card-title{font-size:13px;font-weight:600;margin-bottom:12px;display:flex;align-items:center;gap:8px;}
-  .asesor-item{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);}
-  .asesor-item:last-child{border-bottom:none;padding-bottom:0;}
-  .av{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;flex-shrink:0;}
-  .av-1{background:rgba(108,99,255,.2);color:var(--accent2);}
-  .av-2{background:rgba(224,92,92,.15);color:var(--red);}
-  .av-3{background:var(--amber-bg);color:var(--amber);}
-  .av-4{background:var(--blue-bg);color:var(--blue);}
-  .av-5{background:var(--green-bg);color:var(--green);}
-  .asesor-info{flex:1;min-width:0;}.asesor-name{font-size:12px;font-weight:500;}.asesor-meta{font-size:11px;color:var(--text3);}
-  .asesor-chats{font-size:11px;font-weight:600;color:var(--accent2);background:rgba(108,99,255,.12);padding:2px 8px;border-radius:6px;white-space:nowrap;}
-  .toggle-wrap{position:relative;width:36px;height:20px;flex-shrink:0;}
-  .toggle-wrap input{position:absolute;opacity:0;width:100%;height:100%;cursor:pointer;z-index:1;margin:0;}
-  .toggle-track{width:36px;height:20px;border-radius:10px;background:var(--bg3);border:1px solid var(--border2);display:block;transition:background .2s;position:relative;}
-  .toggle-wrap input:checked+.toggle-track{background:var(--green2);border-color:var(--green);}
-  .toggle-thumb{width:14px;height:14px;border-radius:50%;background:var(--text3);position:absolute;top:2px;left:2px;transition:transform .2s,background .2s;pointer-events:none;}
-  .toggle-wrap input:checked~.toggle-thumb{transform:translateX(16px);background:#fff;}
-  .queue-item{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border);}
-  .queue-item:last-child{border-bottom:none;}
-  .q-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
-  .q-pending{background:var(--amber);}.q-assigned{background:var(--green);}
-  .q-name{flex:1;font-size:12px;font-weight:500;}.q-time{font-size:11px;color:var(--text3);}
-  .q-badge{font-size:10px;padding:2px 7px;border-radius:6px;}
-  .qb-pending{background:var(--amber-bg);color:var(--amber);}.qb-assigned{background:var(--green-bg);color:var(--green);}
-  .result-msg{margin-top:8px;font-size:12px;text-align:center;min-height:18px;}
-  .result-ok{color:var(--green);}.result-err{color:var(--red);}
-  .lock-status-bar{display:flex;align-items:center;gap:12px;padding:14px 16px;border-radius:var(--radius-lg);border:1px solid;margin-bottom:16px;}
-  .lock-status-bar.active{background:var(--green-bg);border-color:rgba(29,181,132,.25);}
-  .lock-status-bar.blocked{background:var(--red-bg);border-color:rgba(224,92,92,.25);}
-  .lock-icon{font-size:22px;}.lock-status-text{font-weight:600;font-size:14px;}.lock-status-sub{font-size:12px;color:var(--text2);margin-top:1px;}
-  .form-row{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
-  .form-label{font-size:12px;color:var(--text2);width:110px;flex-shrink:0;}
-  .form-input{background:var(--bg3);border:1px solid var(--border2);color:var(--text);border-radius:var(--radius);padding:7px 10px;font-size:13px;outline:none;}
-  .form-input:focus{border-color:var(--accent);}
-  .otp-code{font-size:32px;font-weight:700;letter-spacing:8px;text-align:center;padding:16px;background:var(--bg3);border-radius:var(--radius);border:1px solid var(--border);color:var(--accent2);font-family:monospace;margin-bottom:8px;}
-  .otp-progress{height:3px;background:var(--bg3);border-radius:2px;overflow:hidden;margin-bottom:6px;}
-  .otp-fill{height:100%;background:var(--green);transition:width .4s linear;border-radius:2px;}
-  .otp-timer{font-size:11px;color:var(--text3);text-align:center;margin-bottom:12px;}
-  .otp-verify-row{display:flex;gap:8px;}
-  .otp-verify-row input{flex:1;background:var(--bg3);border:1px solid var(--border2);color:var(--text);border-radius:var(--radius);padding:8px 12px;font-size:16px;letter-spacing:5px;font-family:monospace;text-align:center;outline:none;}
-  .otp-verify-row input:focus{border-color:var(--accent);}
-  .code-block{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:14px;font-family:monospace;font-size:12px;color:var(--accent2);line-height:1.9;overflow-x:auto;}
-  .step-list{counter-reset:steps;}
-  .step{display:flex;gap:12px;padding:12px 0;border-bottom:1px solid var(--border);}
-  .step:last-child{border-bottom:none;}
-  .step-num{width:24px;height:24px;border-radius:50%;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;margin-top:1px;}
-  .step-content{flex:1;}.step-title{font-size:13px;font-weight:500;margin-bottom:4px;}
-  .step-desc{font-size:12px;color:var(--text2);line-height:1.6;}
-  .url-box{background:var(--bg);border:1px solid var(--border2);border-radius:var(--radius);padding:8px 12px;font-family:monospace;font-size:12px;color:var(--blue);word-break:break-all;margin-top:6px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:8px;}
-  .url-box:hover{border-color:var(--accent);}
-  .copy-lbl{font-size:10px;color:var(--text3);white-space:nowrap;}
-  .tag-ok{background:var(--green-bg);color:var(--green);font-size:10px;padding:2px 8px;border-radius:6px;font-weight:500;}
-  .tag-pending{background:var(--amber-bg);color:var(--amber);font-size:10px;padding:2px 8px;border-radius:6px;font-weight:500;}
-  ::-webkit-scrollbar{width:5px;height:5px;}::-webkit-scrollbar-track{background:transparent;}::-webkit-scrollbar-thumb{background:var(--bg3);border-radius:3px;}
-  .toast{position:fixed;bottom:24px;right:24px;background:var(--bg2);border:1px solid var(--border2);border-radius:var(--radius-lg);padding:12px 18px;font-size:13px;color:var(--text);box-shadow:0 4px 20px rgba(0,0,0,.4);transform:translateY(80px);opacity:0;transition:all .25s;z-index:999;max-width:320px;}
-  .toast.show{transform:translateY(0);opacity:1;}
-  .toast.ok{border-left:3px solid var(--green);}.toast.err{border-left:3px solid var(--red);}
+:root {
+  --bg:#1a1f2e;--bg2:#242938;--bg3:#2e3347;--bg4:#363d57;
+  --border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.13);
+  --text:#e2e5f0;--text2:#9ba3b8;--text3:#6b748a;
+  --accent:#6c63ff;--accent2:#8b84ff;
+  --green:#1db584;--green-bg:rgba(29,181,132,0.12);
+  --amber:#f5a623;--amber-bg:rgba(245,166,35,0.12);
+  --red:#e05c5c;--red-bg:rgba(224,92,92,0.12);
+  --blue:#4ba3f5;--blue-bg:rgba(75,163,245,0.12);
+  --r:8px;--rl:12px;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;overflow:hidden;}
+body{font-family:-apple-system,BlinkMacSystemFont,'Inter','Segoe UI',sans-serif;
+  background:var(--bg);color:var(--text);font-size:13px;line-height:1.5;}
+
+/* ── LOCK OVERLAY ─────────────────────────────────────── */
+#lock-overlay{
+  position:fixed;inset:0;z-index:9999;
+  background:rgba(10,12,20,0.97);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:24px;
+}
+#lock-overlay.hidden{display:none;}
+.lock-logo{font-size:48px;margin-bottom:4px;}
+.lock-title{font-size:20px;font-weight:700;color:var(--text);}
+.lock-sub{font-size:13px;color:var(--text3);text-align:center;max-width:280px;line-height:1.7;}
+.lock-times{background:var(--bg2);border:1px solid var(--border2);
+  border-radius:var(--rl);padding:12px 20px;font-size:13px;color:var(--text2);text-align:center;}
+.lock-times span{color:var(--green);font-weight:600;}
+.otp-box{background:var(--bg2);border:1px solid var(--border);
+  border-radius:var(--rl);padding:16px 20px;width:280px;}
+.otp-box-title{font-size:11px;font-weight:600;text-transform:uppercase;
+  letter-spacing:.5px;color:var(--text3);margin-bottom:10px;text-align:center;}
+.otp-input-row{display:flex;gap:8px;}
+.otp-input-row input{flex:1;background:var(--bg3);border:1px solid var(--border2);
+  color:var(--text);border-radius:var(--r);padding:9px 12px;font-size:18px;
+  letter-spacing:6px;font-family:monospace;text-align:center;outline:none;}
+.otp-input-row input:focus{border-color:var(--accent);}
+.otp-btn{padding:9px 14px;background:var(--accent);color:#fff;border:none;
+  border-radius:var(--r);font-size:13px;font-weight:500;cursor:pointer;white-space:nowrap;}
+.otp-btn:hover{background:var(--accent2);}
+.otp-err{font-size:11px;color:var(--red);text-align:center;margin-top:6px;min-height:16px;}
+.otp-hint{font-size:10px;color:var(--text3);text-align:center;margin-top:8px;}
+.lock-clock{font-size:11px;color:var(--text3);}
+
+/* ── LOGIN (api key) ──────────────────────────────────── */
+#login-screen{
+  position:fixed;inset:0;z-index:9998;
+  background:var(--bg);display:flex;align-items:center;justify-content:center;
+}
+#login-screen.hidden{display:none;}
+.login-card{background:var(--bg2);border:1px solid var(--border);
+  border-radius:var(--rl);padding:28px;width:320px;}
+.login-logo{font-size:28px;text-align:center;margin-bottom:4px;}
+.login-title{font-size:16px;font-weight:700;text-align:center;margin-bottom:4px;}
+.login-sub{font-size:12px;color:var(--text3);text-align:center;margin-bottom:20px;}
+.login-label{font-size:11px;color:var(--text2);margin-bottom:5px;display:block;}
+.login-input{width:100%;background:var(--bg3);border:1px solid var(--border2);
+  color:var(--text);border-radius:var(--r);padding:9px 12px;font-size:13px;
+  outline:none;margin-bottom:12px;}
+.login-input:focus{border-color:var(--accent);}
+.login-btn{width:100%;padding:9px;background:var(--accent);color:#fff;border:none;
+  border-radius:var(--r);font-size:13px;font-weight:600;cursor:pointer;}
+.login-btn:hover{background:var(--accent2);}
+.login-err{font-size:11px;color:var(--red);text-align:center;margin-top:8px;min-height:16px;}
+
+/* ── APP SHELL ────────────────────────────────────────── */
+#app{height:100%;display:flex;flex-direction:column;}
+#app.hidden{display:none;}
+
+.topbar{height:44px;background:var(--bg2);border-bottom:1px solid var(--border);
+  display:flex;align-items:center;padding:0 12px;gap:8px;flex-shrink:0;}
+.topbar-tabs{display:flex;gap:2px;flex:1;}
+.tab-btn{padding:5px 12px;border-radius:var(--r);border:none;background:transparent;
+  color:var(--text3);font-size:12px;cursor:pointer;transition:all .15s;display:flex;
+  align-items:center;gap:5px;}
+.tab-btn:hover{background:var(--bg3);color:var(--text2);}
+.tab-btn.active{background:rgba(108,99,255,.18);color:var(--accent2);}
+.tab-badge{background:var(--amber);color:#000;border-radius:8px;padding:1px 5px;
+  font-size:9px;font-weight:700;}
+.tab-badge.green{background:var(--green);}
+.topbar-agent{font-size:11px;color:var(--text3);display:flex;align-items:center;gap:5px;}
+.agent-dot{width:7px;height:7px;border-radius:50%;background:var(--green);}
+.topbar-lock{font-size:10px;padding:2px 8px;border-radius:8px;font-weight:500;margin-left:4px;}
+.topbar-lock.on{background:var(--green-bg);color:var(--green);}
+.topbar-lock.off{background:var(--red-bg);color:var(--red);}
+
+.content{flex:1;overflow-y:auto;padding:12px;}
+.section{display:none;}.section.active{display:block;}
+
+/* ── EMBUDO ─────────────────────────────────────────────*/
+.kanban{display:flex;gap:10px;overflow-x:auto;padding-bottom:6px;min-height:calc(100vh - 120px);}
+.kcol{background:var(--bg2);border:1px solid var(--border);border-radius:var(--rl);
+  padding:10px;min-width:180px;width:180px;flex-shrink:0;}
+.kcol-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;}
+.kcol-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;}
+.kcol-count{background:var(--bg3);border-radius:6px;padding:1px 6px;font-size:10px;color:var(--text3);}
+.kcard{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);
+  padding:9px;margin-bottom:7px;cursor:grab;transition:border-color .15s,opacity .15s;position:relative;}
+.kcard:active{cursor:grabbing;opacity:.6;}
+.kcard.dragging{opacity:.3;}
+.kcard.mine{border-left:2px solid var(--accent);}
+.kcard-name{font-size:12px;font-weight:500;margin-bottom:2px;white-space:nowrap;
+  overflow:hidden;text-overflow:ellipsis;}
+.kcard-preview{font-size:10px;color:var(--text3);margin-bottom:5px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:155px;}
+.kcard-footer{display:flex;align-items:center;gap:5px;flex-wrap:wrap;}
+.ktag{font-size:9px;padding:2px 6px;border-radius:5px;font-weight:600;}
+.tag-hot{background:rgba(224,92,92,.15);color:var(--red);}
+.tag-warm{background:var(--amber-bg);color:var(--amber);}
+.tag-cold{background:var(--blue-bg);color:var(--blue);}
+.tag-won{background:var(--green-bg);color:var(--green);}
+.kcard-asesor{font-size:9px;color:var(--text3);}
+.kcard-open{position:absolute;top:6px;right:6px;background:var(--bg4);
+  border:none;border-radius:4px;padding:2px 5px;font-size:9px;color:var(--text2);
+  cursor:pointer;opacity:0;transition:opacity .15s;}
+.kcard:hover .kcard-open{opacity:1;}
+.kcard-open:hover{color:var(--accent2);}
+.kdrop{min-height:36px;border:1.5px dashed transparent;border-radius:var(--r);
+  transition:border-color .15s,background .15s;}
+.kdrop.over{border-color:var(--accent);background:rgba(108,99,255,.06);}
+.kcard-loading{text-align:center;padding:20px;color:var(--text3);font-size:12px;}
+
+/* ── ASIGNACIÓN ─────────────────────────────────────────*/
+.section-title{font-size:13px;font-weight:600;margin-bottom:12px;
+  display:flex;align-items:center;gap:8px;}
+.metrics-mini{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px;}
+.mm{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);
+  padding:10px;text-align:center;}
+.mm-val{font-size:20px;font-weight:600;}.mm-lbl{font-size:10px;color:var(--text3);}
+.mm.green .mm-val{color:var(--green);}.mm.amber .mm-val{color:var(--amber);}
+.mm.blue .mm-val{color:var(--blue);}
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--rl);
+  padding:12px;margin-bottom:12px;}
+.card-title{font-size:12px;font-weight:600;margin-bottom:10px;color:var(--text);}
+.asesor-row{display:flex;align-items:center;gap:9px;padding:8px 0;
+  border-bottom:1px solid var(--border);}
+.asesor-row:last-child{border-bottom:none;padding-bottom:0;}
+.av{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;
+  justify-content:center;font-size:11px;font-weight:600;flex-shrink:0;}
+.av1{background:rgba(108,99,255,.2);color:var(--accent2);}
+.av2{background:rgba(224,92,92,.15);color:var(--red);}
+.av3{background:var(--amber-bg);color:var(--amber);}
+.av4{background:var(--blue-bg);color:var(--blue);}
+.av5{background:var(--green-bg);color:var(--green);}
+.asesor-info{flex:1;}.asesor-name{font-size:12px;font-weight:500;}
+.asesor-meta{font-size:10px;color:var(--text3);}
+.asesor-count{font-size:10px;font-weight:600;color:var(--accent2);
+  background:rgba(108,99,255,.12);padding:2px 7px;border-radius:6px;white-space:nowrap;}
+.toggle{position:relative;width:32px;height:18px;flex-shrink:0;}
+.toggle input{position:absolute;opacity:0;width:100%;height:100%;cursor:pointer;z-index:1;margin:0;}
+.ttrack{width:32px;height:18px;border-radius:9px;background:var(--bg4);
+  border:1px solid var(--border2);display:block;transition:background .2s;}
+.toggle input:checked+.ttrack{background:var(--green);border-color:var(--green);}
+.tthumb{width:12px;height:12px;border-radius:50%;background:var(--text3);
+  position:absolute;top:2px;left:2px;transition:transform .2s,background .2s;pointer-events:none;}
+.toggle input:checked~.tthumb{transform:translateX(14px);background:#fff;}
+.queue-row{display:flex;align-items:center;gap:8px;padding:8px 0;
+  border-bottom:1px solid var(--border);}
+.queue-row:last-child{border-bottom:none;}
+.qdot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+.qdot.p{background:var(--amber);}.qdot.a{background:var(--green);}
+.qname{flex:1;font-size:12px;font-weight:500;}
+.qtime{font-size:10px;color:var(--text3);}
+.qbadge{font-size:9px;padding:2px 6px;border-radius:5px;}
+.qbp{background:var(--amber-bg);color:var(--amber);}
+.qba{background:var(--green-bg);color:var(--green);}
+.big-btn{width:100%;padding:9px;background:var(--accent);color:#fff;border:none;
+  border-radius:var(--r);font-size:12px;font-weight:600;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;gap:6px;transition:background .15s;}
+.big-btn:hover{background:var(--accent2);}
+.big-btn:disabled{opacity:.5;cursor:default;}
+.result{font-size:11px;text-align:center;margin-top:6px;min-height:16px;}
+.result.ok{color:var(--green);}.result.err{color:var(--red);}
+
+/* ── ADMIN TOOLS ─────────────────────────────────────── */
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.form-row{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
+.form-lbl{font-size:11px;color:var(--text2);width:80px;flex-shrink:0;}
+.form-input{background:var(--bg3);border:1px solid var(--border2);color:var(--text);
+  border-radius:var(--r);padding:6px 9px;font-size:12px;outline:none;flex:1;}
+.form-input:focus{border-color:var(--accent);}
+.otp-big{font-size:28px;font-weight:700;letter-spacing:8px;text-align:center;
+  padding:12px;background:var(--bg3);border-radius:var(--r);border:1px solid var(--border);
+  color:var(--accent2);font-family:monospace;margin-bottom:6px;}
+.otp-bar-wrap{height:3px;background:var(--bg3);border-radius:2px;overflow:hidden;margin-bottom:4px;}
+.otp-bar-fill{height:100%;background:var(--green);transition:width .4s linear;border-radius:2px;}
+.otp-timer-txt{font-size:10px;color:var(--text3);text-align:center;margin-bottom:10px;}
+.sec-btn{padding:7px 12px;background:var(--bg3);border:1px solid var(--border2);
+  color:var(--text2);border-radius:var(--r);font-size:12px;cursor:pointer;}
+.sec-btn:hover{color:var(--text);}
+.lock-status-bar{display:flex;align-items:center;gap:10px;padding:12px 14px;
+  border-radius:var(--rl);border:1px solid;margin-bottom:14px;}
+.lock-status-bar.on{background:var(--green-bg);border-color:rgba(29,181,132,.25);}
+.lock-status-bar.off{background:var(--red-bg);border-color:rgba(224,92,92,.25);}
+.lsb-icon{font-size:18px;}.lsb-title{font-weight:600;font-size:13px;}
+.lsb-sub{font-size:11px;color:var(--text2);margin-top:1px;}
+.hint{font-size:10px;color:var(--text3);margin:6px 0 10px;line-height:1.6;}
+
+/* ── TOAST ───────────────────────────────────────────── */
+.toast{position:fixed;bottom:16px;right:16px;background:var(--bg2);
+  border:1px solid var(--border2);border-radius:var(--rl);padding:10px 14px;
+  font-size:12px;color:var(--text);box-shadow:0 4px 16px rgba(0,0,0,.4);
+  transform:translateY(60px);opacity:0;transition:all .2s;z-index:10000;max-width:260px;}
+.toast.show{transform:translateY(0);opacity:1;}
+.toast.ok{border-left:3px solid var(--green);}
+.toast.err{border-left:3px solid var(--red);}
+
+/* ── SCROLLBAR ───────────────────────────────────────── */
+::-webkit-scrollbar{width:4px;height:4px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--bg3);border-radius:2px;}
+
+/* ── LOADING ─────────────────────────────────────────── */
+#initial-loader{position:fixed;inset:0;background:var(--bg);
+  display:flex;align-items:center;justify-content:center;z-index:9997;flex-direction:column;gap:12px;}
+#initial-loader.hidden{display:none;}
+.spinner{width:28px;height:28px;border:2px solid var(--bg3);
+  border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
 </style>
 </head>
 <body>
-<div class="layout">
-  <aside class="sidebar">
-    <div class="sidebar-brand">
-      <div class="brand-row">
-        <div class="brand-dot">D</div>
-        <div><div class="brand-name">Destidnos</div><div class="brand-sub">Panel de gestión</div></div>
+
+<!-- LOADER INICIAL -->
+<div id="initial-loader">
+  <div class="spinner"></div>
+  <div style="font-size:12px;color:var(--text3)">Conectando con Chatwoot...</div>
+</div>
+
+<!-- LOGIN (cuando no llega contexto de Chatwoot) -->
+<div id="login-screen" class="hidden">
+  <div class="login-card">
+    <div class="login-logo">✈️</div>
+    <div class="login-title">Destidnos Panel</div>
+    <div class="login-sub">Ingresa tu Access Token de Chatwoot</div>
+    <label class="login-label">Access Token</label>
+    <input class="login-input" type="password" id="manual-token" placeholder="Pega tu token aquí...">
+    <button class="login-btn" onclick="doManualLogin()">Entrar</button>
+    <div class="login-err" id="login-err"></div>
+    <div style="font-size:10px;color:var(--text3);margin-top:10px;text-align:center">
+      Chatwoot → Perfil → Access Token
+    </div>
+  </div>
+</div>
+
+<!-- LOCK OVERLAY -->
+<div id="lock-overlay" class="hidden">
+  <div class="lock-logo">🔒</div>
+  <div class="lock-title">Sistema fuera de horario</div>
+  <div class="lock-sub">Chatwoot está bloqueado para asesores. Los chats no se asignarán automáticamente.</div>
+  <div class="lock-times">Horario laboral: <span id="lo-start">7:00 AM</span> – <span id="lo-end">10:00 PM</span></div>
+  <div class="otp-box">
+    <div class="otp-box-title">🚨 Acceso de emergencia</div>
+    <div class="otp-input-row">
+      <input type="text" maxlength="6" placeholder="Código" id="overlay-otp"
+        oninput="this.value=this.value.replace(/\D/g,'')">
+      <button class="otp-btn" onclick="verifyOverlayOTP()">Entrar</button>
+    </div>
+    <div class="otp-err" id="overlay-otp-err"></div>
+    <div class="otp-hint">El código cambia cada 30 segundos.<br>Solicítalo al administrador.</div>
+  </div>
+  <div class="lock-clock" id="lock-clock"></div>
+</div>
+
+<!-- APP PRINCIPAL -->
+<div id="app" class="hidden">
+  <div class="topbar">
+    <div class="topbar-tabs" id="topbar-tabs">
+      <!-- tabs insertados por JS según rol -->
+    </div>
+    <div class="topbar-agent">
+      <div class="agent-dot"></div>
+      <span id="agent-name-display">...</span>
+    </div>
+    <span class="topbar-lock on" id="topbar-lock-badge">Activo</span>
+  </div>
+
+  <div class="content">
+
+    <!-- EMBUDO -->
+    <div id="sec-embudo" class="section">
+      <div id="kanban-board" class="kanban"></div>
+    </div>
+
+    <!-- ASIGNACIÓN (solo admin) -->
+    <div id="sec-asignacion" class="section">
+      <div class="metrics-mini">
+        <div class="mm green"><div class="mm-val" id="m-act">0</div><div class="mm-lbl">Activos hoy</div></div>
+        <div class="mm amber"><div class="mm-val" id="m-pen">0</div><div class="mm-lbl">Sin asignar</div></div>
+        <div class="mm blue"><div class="mm-val" id="m-tot">0</div><div class="mm-lbl">Asignados hoy</div></div>
+      </div>
+      <div class="two-col">
+        <div>
+          <div class="card">
+            <div class="card-title">Asesores disponibles hoy</div>
+            <div id="asesores-list"></div>
+          </div>
+          <button class="big-btn" id="rr-btn" onclick="runRoundRobin()">
+            ↻ Asignar equitativamente
+          </button>
+          <div class="result" id="rr-result"></div>
+        </div>
+        <div class="card">
+          <div class="card-title">Cola sin asignar</div>
+          <div id="queue-list"></div>
+        </div>
       </div>
     </div>
-    <nav class="sidebar-nav">
-      <div class="nav-section">Principal</div>
-      <button class="nav-item active" onclick="go('dashboard',this)">
-        <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
-        Dashboard
-      </button>
-      <button class="nav-item" onclick="go('embudo',this)">
-        <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M3 4h18v2l-7 7v7l-4-2v-5L3 6V4z"/></svg>
-        Embudo de ventas
-        <span class="nav-badge" id="badge-embudo">8</span>
-      </button>
-      <button class="nav-item" onclick="go('asignacion',this)">
-        <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><circle cx="9" cy="7" r="4"/><path d="M3 21v-2a4 4 0 014-4h4a4 4 0 014 4v2"/><path d="M16 3.13a4 4 0 010 7.75M21 21v-2a4 4 0 00-3-3.87"/></svg>
-        Asignación
-        <span class="nav-badge" id="badge-pending" style="background:var(--amber)">4</span>
-      </button>
-      <div class="nav-section">Sistema</div>
-      <button class="nav-item" onclick="go('bloqueo',this)">
-        <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
-        Horario y bloqueo
-      </button>
-      <button class="nav-item" onclick="go('config',this)">
-        <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v2m0 16v2M4.22 4.22l1.42 1.42m12.72 12.72l1.42 1.42M2 12h2m16 0h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
-        Configuración
-      </button>
-    </nav>
-    <div class="sidebar-footer">
-      <div class="agent-row">
-        <div class="agent-avatar">IA<div class="agent-online"></div></div>
-        <div><div class="agent-name">Martha (Admin)</div><div class="agent-role">Administrador</div></div>
-        <span class="lock-indicator active" id="sidebar-lock">Activo</span>
+
+    <!-- HORARIO (solo admin) -->
+    <div id="sec-horario" class="section">
+      <div class="lock-status-bar on" id="lsbar">
+        <div class="lsb-icon" id="lsb-icon">🔓</div>
+        <div>
+          <div class="lsb-title" id="lsb-title">Sistema activo</div>
+          <div class="lsb-sub" id="lsb-sub">Chats se asignan normalmente</div>
+        </div>
+      </div>
+      <div class="two-col">
+        <div class="card">
+          <div class="card-title">⏰ Horario laboral (Bogotá)</div>
+          <div class="form-row">
+            <span class="form-lbl">Inicio</span>
+            <input type="time" class="form-input" id="h-start" value="07:00">
+          </div>
+          <div class="form-row">
+            <span class="form-lbl">Fin</span>
+            <input type="time" class="form-input" id="h-end" value="22:00">
+          </div>
+          <div class="hint">Fuera de este horario los asesores ven la pantalla de bloqueo. Los admins acceden siempre.</div>
+          <button class="big-btn" onclick="saveSchedule()">Guardar horario</button>
+          <div class="result" id="schedule-result"></div>
+        </div>
+        <div class="card">
+          <div class="card-title">🔑 Código OTP emergencia</div>
+          <div class="hint">Cambia cada 30s. Comparte solo en urgencias. El asesor accede sin asignación automática.</div>
+          <div class="otp-big" id="admin-otp">000000</div>
+          <div class="otp-bar-wrap"><div class="otp-bar-fill" id="admin-otp-bar" style="width:100%"></div></div>
+          <div class="otp-timer-txt" id="admin-otp-timer">Expira en 30s</div>
+          <div style="display:flex;gap:8px">
+            <input type="text" maxlength="6" placeholder="Verificar código" id="admin-otp-input"
+              class="form-input" style="letter-spacing:4px;font-family:monospace;text-align:center"
+              oninput="this.value=this.value.replace(/\D/g,'')">
+            <button class="sec-btn" onclick="verifyAdminOTP()">OK</button>
+          </div>
+          <div class="result" id="admin-otp-result"></div>
+        </div>
       </div>
     </div>
-  </aside>
 
-  <div class="main">
-    <header class="topbar">
-      <div class="topbar-title" id="topbar-title">Dashboard</div>
-      <div class="topbar-meta" id="topbar-time"></div>
-      <button class="btn btn-secondary" onclick="syncChatwoot()">
-        <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 2v6h-6"/><path d="M3 12a9 9 0 0115-6.7L21 8M3 22v-6h6"/><path d="M21 12a9 9 0 01-15 6.7L3 16"/></svg>
-        Sincronizar Chatwoot
-      </button>
-    </header>
-
-    <div class="content">
-
-      <!-- DASHBOARD -->
-      <div id="sec-dashboard" class="section active">
-        <div class="metrics">
-          <div class="metric-card green"><div class="metric-val" id="m-activos">2</div><div class="metric-lbl">Asesores activos</div></div>
-          <div class="metric-card amber"><div class="metric-val" id="m-pendientes">4</div><div class="metric-lbl">Sin asignar</div></div>
-          <div class="metric-card blue"><div class="metric-val" id="m-abiertos">—</div><div class="metric-lbl">Conversaciones abiertas</div></div>
-          <div class="metric-card red"><div class="metric-val" id="m-sistema">—</div><div class="metric-lbl">Estado sistema</div></div>
-        </div>
-        <div class="two-col">
-          <div class="card">
-            <div class="card-title">Asesores del equipo</div>
-            <div class="asesor-item"><div class="av av-2">CP</div><div class="asesor-info"><div class="asesor-name">Camila Pineda</div><div class="asesor-meta">reservas@destidnos.com · ID 3</div></div></div>
-            <div class="asesor-item"><div class="av av-1">CD</div><div class="asesor-info"><div class="asesor-name">Cristian David Pinilla</div><div class="asesor-meta">cristianpinilla0@gmail.com · ID 6</div></div></div>
-            <div class="asesor-item"><div class="av av-3">EG</div><div class="asesor-info"><div class="asesor-name">Esnedy Gutiérrez</div><div class="asesor-meta">servicioalcliente@destidnos.com · ID 5</div></div></div>
-            <div class="asesor-item"><div class="av av-4">JD</div><div class="asesor-info"><div class="asesor-name">Juan Diego Correa</div><div class="asesor-meta">juanito.dt1996@gmail.com · ID 7</div></div></div>
-            <div class="asesor-item"><div class="av av-5">LS</div><div class="asesor-info"><div class="asesor-name">Laura Sarria</div><div class="asesor-meta">administracion@destidnos.com · ID 2</div></div></div>
-          </div>
-          <div class="card">
-            <div class="card-title">Estado de conexión n8n</div>
-            <div class="step-list">
-              <div class="step"><div class="step-num">1</div><div class="step-content"><div class="step-title">Workflow 1 — Round Robin</div><div class="step-desc">Asigna manualmente desde el panel</div></div></div>
-              <div class="step"><div class="step-num">2</div><div class="step-content"><div class="step-title">Workflow 2 — Chat nuevo</div><div class="step-desc">Auto-asigna al asesor con menos carga</div></div></div>
-              <div class="step"><div class="step-num">3</div><div class="step-content"><div class="step-title">Workflow 3 — OTP / Horario</div><div class="step-desc">Control de bloqueo y códigos de emergencia</div></div></div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- EMBUDO -->
-      <div id="sec-embudo" class="section">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
-          <div style="font-size:12px;color:var(--text3)">Arrastra los chats entre etapas · Los cambios son locales (próximamente sincronizados con Chatwoot vía etiquetas)</div>
-          <button class="btn btn-primary" onclick="addCard()">+ Nuevo chat</button>
-        </div>
-        <div class="kanban-wrap" id="kanban-board"></div>
-      </div>
-
-      <!-- ASIGNACIÓN -->
-      <div id="sec-asignacion" class="section">
-        <div class="two-col">
-          <div>
-            <div class="card">
-              <div class="card-title">Asesores disponibles hoy</div>
-              <div id="asesores-list"></div>
-            </div>
-            <button class="btn btn-primary" style="width:100%;margin-bottom:6px" onclick="runRoundRobin()">
-              <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 2v6h-6"/><path d="M3 12a9 9 0 0115-6.7L21 8"/></svg>
-              Asignar equitativamente (Round-Robin)
-            </button>
-            <div class="result-msg" id="assign-result"></div>
-          </div>
-          <div class="card">
-            <div class="card-title">Cola de chats sin asignar</div>
-            <div id="queue-list"></div>
-          </div>
-        </div>
-      </div>
-
-      <!-- BLOQUEO -->
-      <div id="sec-bloqueo" class="section">
-        <div class="lock-status-bar active" id="lock-bar">
-          <div class="lock-icon" id="lock-icon">🔓</div>
-          <div>
-            <div class="lock-status-text" id="lock-text">Sistema activo — horario laboral</div>
-            <div class="lock-status-sub" id="lock-sub">Los chats se asignan normalmente</div>
-          </div>
-        </div>
-        <div class="two-col">
-          <div class="card">
-            <div class="card-title">Horario laboral (Bogotá)</div>
-            <div class="form-row"><span class="form-label">Inicio</span><input type="time" class="form-input" id="time-start" value="07:00"></div>
-            <div class="form-row"><span class="form-label">Fin</span><input type="time" class="form-input" id="time-end" value="22:00"></div>
-            <div style="font-size:11px;color:var(--text3);margin:8px 0 12px">Fuera de este horario ningún chat se asignará aunque alguien se conecte a Chatwoot.</div>
-            <button class="btn btn-primary" style="width:100%" onclick="saveSchedule()">Guardar horario</button>
-          </div>
-          <div class="card">
-            <div class="card-title">Código de emergencia TOTP</div>
-            <div style="font-size:11px;color:var(--text3);margin-bottom:10px">Cambia cada 30 segundos. Comparte solo en urgencias. El acceso NO activa asignación automática.</div>
-            <div class="otp-code" id="otp-display">000000</div>
-            <div class="otp-progress"><div class="otp-fill" id="otp-fill" style="width:100%"></div></div>
-            <div class="otp-timer" id="otp-timer">Expira en 30s</div>
-            <div class="otp-verify-row">
-              <input type="text" maxlength="6" placeholder="Ingresar código" id="otp-input" oninput="this.value=this.value.replace(/\D/g,'')">
-              <button class="btn btn-secondary" onclick="verifyOTP()">Verificar</button>
-            </div>
-            <div class="result-msg" id="otp-result"></div>
-          </div>
-        </div>
-      </div>
-
-      <!-- CONFIG -->
-      <div id="sec-config" class="section">
-        <div class="card">
-          <div class="card-title">Guía de configuración paso a paso</div>
-          <div class="step-list">
-
-            <div class="step">
-              <div class="step-num">1</div>
-              <div class="step-content">
-                <div class="step-title">Crear credencial en n8n</div>
-                <div class="step-desc">
-                  En n8n → <strong>Credentials</strong> → New → busca <strong>"Header Auth"</strong><br>
-                  Name: <code>Chatwoot API Key</code><br>
-                  Name (header): <code>api_access_token</code><br>
-                  Value: <code>k15ySN1YFJh9PjqoS3ow1DCB</code>
-                </div>
-              </div>
-            </div>
-
-            <div class="step">
-              <div class="step-num">2</div>
-              <div class="step-content">
-                <div class="step-title">Activar los 3 workflows</div>
-                <div class="step-desc">
-                  En n8n, entra a cada workflow y activa el toggle <strong>"Active"</strong> (arriba a la derecha).<br>
-                  Deben quedar en verde. Si pide asignar credencial, selecciona <em>Chatwoot API Key</em>.
-                </div>
-              </div>
-            </div>
-
-            <div class="step">
-              <div class="step-num">3</div>
-              <div class="step-content">
-                <div class="step-title">Copiar URL del Webhook 2 → Chatwoot</div>
-                <div class="step-desc">
-                  En n8n, abre el <strong>Workflow 2</strong> → click en el nodo <em>"Webhook - Chatwoot evento"</em> → copia la URL de producción.<br>
-                  Luego ve a Chatwoot → Ajustes → Integraciones → Webhooks → <strong>Nuevo webhook</strong><br>
-                  Pega la URL y activa solo el evento: <strong>conversation_created</strong>
-                </div>
-                <div class="url-box" onclick="copyText(this,'https://n8n.jmflow.tech/webhook/chatwoot-nuevo-chat')">
-                  https://n8n.jmflow.tech/webhook/chatwoot-nuevo-chat
-                  <span class="copy-lbl" id="copy1">Copiar</span>
-                </div>
-              </div>
-            </div>
-
-            <div class="step">
-              <div class="step-num">4</div>
-              <div class="step-content">
-                <div class="step-title">Desactivar asignación automática de Chatwoot</div>
-                <div class="step-desc">
-                  Chatwoot → Ajustes → Entradas → WhatsApp Destidnos → Colaboradores<br>
-                  Desactiva <strong>"Enable automatic conversation assignment"</strong><br>
-                  Así n8n toma el control total de las asignaciones.
-                </div>
-              </div>
-            </div>
-
-            <div class="step">
-              <div class="step-num">5</div>
-              <div class="step-content">
-                <div class="step-title">Desplegar este panel en Dokploy</div>
-                <div class="step-desc">
-                  En Dokploy → JMFlow → Create Service → <strong>Static</strong><br>
-                  Sube el archivo <code>panel-destidnos.html</code> como <code>index.html</code><br>
-                  Asigna un dominio ej: <code>panel.jmflow.tech</code>
-                </div>
-              </div>
-            </div>
-
-          </div>
-        </div>
-
-        <div class="card">
-          <div class="card-title">URLs de los webhooks (todas activas)</div>
-          <div style="display:flex;flex-direction:column;gap:8px">
-            <div>
-              <div style="font-size:11px;color:var(--text3);margin-bottom:4px">Workflow 1 — Asignación manual round-robin</div>
-              <div class="url-box" onclick="copyText(this,'https://n8n.jmflow.tech/webhook/asignar-chats')">
-                https://n8n.jmflow.tech/webhook/asignar-chats <span class="copy-lbl">Copiar</span>
-              </div>
-            </div>
-            <div>
-              <div style="font-size:11px;color:var(--text3);margin-bottom:4px">Workflow 2 — Nuevo chat (va en Chatwoot Webhooks)</div>
-              <div class="url-box" onclick="copyText(this,'https://n8n.jmflow.tech/webhook/chatwoot-nuevo-chat')">
-                https://n8n.jmflow.tech/webhook/chatwoot-nuevo-chat <span class="copy-lbl">Copiar</span>
-              </div>
-            </div>
-            <div>
-              <div style="font-size:11px;color:var(--text3);margin-bottom:4px">Workflow 3 — Verificar OTP</div>
-              <div class="url-box" onclick="copyText(this,'https://n8n.jmflow.tech/webhook/verificar-otp')">
-                https://n8n.jmflow.tech/webhook/verificar-otp <span class="copy-lbl">Copiar</span>
-              </div>
-            </div>
-            <div>
-              <div style="font-size:11px;color:var(--text3);margin-bottom:4px">Workflow 3 — Estado sistema</div>
-              <div class="url-box" onclick="copyText(this,'https://n8n.jmflow.tech/webhook/estado-sistema')">
-                https://n8n.jmflow.tech/webhook/estado-sistema <span class="copy-lbl">Copiar</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="card">
-          <div class="card-title">IDs de agentes confirmados</div>
-          <div class="code-block">
-Camila Pineda        →  id: 3   reservas@destidnos.com
-Cristian David       →  id: 6   cristianpinilla0@gmail.com
-Esnedy Gutiérrez     →  id: 5   servicioalcliente@destidnos.com
-Juan Diego Correa    →  id: 7   juanito.dt1996@gmail.com
-Laura Sarria         →  id: 2   administracion@destidnos.com
-IA DESTIDNOS Martha  →  id: 1   mosquerajhonalberto@gmail.com
-          </div>
-        </div>
-      </div>
-
-    </div>
   </div>
 </div>
 
 <div class="toast" id="toast"></div>
 
 <script>
-// ── CONFIG REAL ───────────────────────────────────────────
+// ══ CONFIGURACIÓN ══════════════════════════════════════════════════
 const CHATWOOT_URL = 'https://crm.jmflow.tech';
-const API_KEY      = 'k15ySN1YFJh9PjqoS3ow1DCB';
 const ACCOUNT_ID   = '2';
-const N8N          = 'https://n8n.jmflow.tech';
-const WH = {
-  asignar: N8N + '/webhook/asignar-chats',
-  nuevo:   N8N + '/webhook/chatwoot-nuevo-chat',
-  otp:     N8N + '/webhook/verificar-otp',
-  horario: N8N + '/webhook/guardar-horario',
-  estado:  N8N + '/webhook/estado-sistema',
-};
+const N8N_BASE     = 'https://n8n.jmflow.tech';
+
+// IDs de admins (Laura=2, Martha=1)
+const ADMIN_IDS = [1, 2];
+
+// Agentes con sus datos reales
 const AGENTES = [
-  {id:3,  nombre:'Camila Pineda',     init:'CP', cls:'av-2', activo:true,  asignados:0},
-  {id:6,  nombre:'Cristian David',    init:'CD', cls:'av-1', activo:true,  asignados:0},
-  {id:5,  nombre:'Esnedy Gutiérrez',  init:'EG', cls:'av-3', activo:false, asignados:0},
-  {id:7,  nombre:'Juan Diego Correa', init:'JD', cls:'av-4', activo:false, asignados:0},
-  {id:2,  nombre:'Laura Sarria',      init:'LS', cls:'av-5', activo:false, asignados:0},
+  {id:3,  nombre:'Camila Pineda',     init:'CP', cls:'av2', activo:true,  asignados:0},
+  {id:6,  nombre:'Cristian David',    init:'CD', cls:'av1', activo:true,  asignados:0},
+  {id:5,  nombre:'Esnedy Gutiérrez',  init:'EG', cls:'av3', activo:false, asignados:0},
+  {id:7,  nombre:'Juan Diego Correa', init:'JD', cls:'av4', activo:false, asignados:0},
+  {id:2,  nombre:'Laura Sarria',      init:'LS', cls:'av5', activo:false, asignados:0},
 ];
-// ─────────────────────────────────────────────────────────
 
-const KANBAN = {
-  nuevo:      {title:'Nuevo',      col:'#6c63ff', items:[
-    {id:'k1',name:'Chat sin asignar',preview:'Nuevo lead entrante',tag:'cold',asesor:''},
-  ]},
-  contactado: {title:'Contactado', col:'#4ba3f5', items:[]},
-  cotizado:   {title:'Cotizado',   col:'#f5a623', items:[]},
-  negociando: {title:'Negociando', col:'#e05c5c', items:[]},
-  cerrado:    {title:'Cerrado',    col:'#1db584', items:[]},
+const WH = {
+  asignar: N8N_BASE + '/webhook/asignar-chats',
+  otp:     N8N_BASE + '/webhook/verificar-otp',
+  horario: N8N_BASE + '/webhook/guardar-horario',
 };
-const TAG_LBL={hot:'Caliente',warm:'Tibio',cold:'Frío',won:'Ganado'};
-const TAG_CLS={hot:'tag-hot',warm:'tag-warm',cold:'tag-cold',won:'tag-won'};
 
-const PENDING=[
-  {id:'p1',name:'Chat pendiente 1',time:'en cola',assigned:false,assignee:''},
-  {id:'p2',name:'Chat pendiente 2',time:'en cola',assigned:false,assignee:''},
-  {id:'p3',name:'Chat pendiente 3',time:'en cola',assigned:false,assignee:''},
-  {id:'p4',name:'Chat pendiente 4',time:'en cola',assigned:false,assignee:''},
-];
-let rrIdx=0;
+// Horario (se puede actualizar desde el panel admin)
+let SCHEDULE = { start: '07:00', end: '22:00' };
 
-// NAV
-function go(id,btn){
-  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
-  document.querySelectorAll('.nav-item').forEach(b=>b.classList.remove('active'));
-  document.getElementById('sec-'+id).classList.add('active');
+// ══ ESTADO ═════════════════════════════════════════════════════════
+let currentAgent = null;   // { id, name, email } de Chatwoot
+let isAdmin = false;
+let apiToken = null;
+let conversacionActual = null;
+let kanbanData = null;
+let pendingChats = [];
+let rrIndex = 0;
+let otpTick = null;
+let lockBypassActive = false;
+
+// ══ KANBAN ESTRUCTURA ═══════════════════════════════════════════════
+const COLS = {
+  nuevo:      { title:'Nuevo',      color:'#6c63ff' },
+  contactado: { title:'Contactado', color:'#4ba3f5' },
+  cotizado:   { title:'Cotizado',   color:'#f5a623' },
+  negociando: { title:'Negociando', color:'#e05c5c' },
+  cerrado:    { title:'Cerrado',    color:'#1db584' },
+};
+const TAG_L = { hot:'Caliente', warm:'Tibio', cold:'Frío', won:'Ganado' };
+const TAG_C = { hot:'tag-hot',  warm:'tag-warm', cold:'tag-cold', won:'tag-won' };
+
+// ══ INIT: ESCUCHAR CHATWOOT ════════════════════════════════════════
+window.addEventListener('message', function(e) {
+  try {
+    const data = typeof e.data === 'string' ? JSON.parse(e.data) : e.data;
+    if (data.event === 'appContext') {
+      handleChatwootContext(data.data);
+    }
+  } catch(err) {}
+});
+
+// Pedir contexto a Chatwoot
+setTimeout(() => {
+  window.parent.postMessage('chatwoot-dashboard-app:fetch-info', '*');
+  // Si en 3s no llega contexto, mostrar login manual
+  setTimeout(() => {
+    if (!currentAgent) {
+      hide('initial-loader');
+      show('login-screen');
+    }
+  }, 3000);
+}, 300);
+
+function handleChatwootContext(ctx) {
+  if (!ctx || !ctx.currentAgent) return;
+  hide('initial-loader');
+
+  currentAgent = ctx.currentAgent;
+  conversacionActual = ctx.conversation || null;
+  apiToken = apiToken || null; // no viene en el contexto, necesitamos login manual solo si no hay token
+
+  // Determinar rol por ID
+  isAdmin = ADMIN_IDS.includes(currentAgent.id);
+
+  // Si no tenemos token aún, mostrar login
+  if (!apiToken) {
+    // Intentamos con token guardado
+    const saved = sessionStorage.getItem('cw_token');
+    if (saved) {
+      apiToken = saved;
+      bootApp();
+    } else {
+      hide('initial-loader');
+      show('login-screen');
+    }
+    return;
+  }
+  bootApp();
+}
+
+async function doManualLogin() {
+  const token = document.getElementById('manual-token').value.trim();
+  if (!token) { setErr('login-err', 'Ingresa tu token'); return; }
+  
+  // Verificar token con la API
+  try {
+    const res = await cwFetch('/auth/sign_in', 'GET', null, token);
+    if (res && res.data) {
+      apiToken = token;
+      sessionStorage.setItem('cw_token', token);
+      
+      // Si no tenemos currentAgent aún (abrió fuera de Chatwoot), usamos datos del login
+      if (!currentAgent) {
+        currentAgent = {
+          id: res.data.id,
+          name: res.data.name,
+          email: res.data.email
+        };
+        isAdmin = ADMIN_IDS.includes(currentAgent.id);
+      }
+      hide('login-screen');
+      bootApp();
+    } else {
+      setErr('login-err', 'Token inválido');
+    }
+  } catch(e) {
+    // Intentar con endpoint de profile
+    try {
+      const r2 = await cwFetch('/profile', 'GET', null, token);
+      if (r2 && r2.id) {
+        apiToken = token;
+        sessionStorage.setItem('cw_token', token);
+        if (!currentAgent) {
+          currentAgent = { id: r2.id, name: r2.name, email: r2.email };
+          isAdmin = ADMIN_IDS.includes(currentAgent.id);
+        }
+        hide('login-screen');
+        bootApp();
+      } else {
+        setErr('login-err', 'Token inválido. Verifica en Chatwoot → Perfil → Access Token');
+      }
+    } catch(e2) {
+      setErr('login-err', 'Error de conexión con Chatwoot');
+    }
+  }
+}
+
+function bootApp() {
+  // Mostrar nombre del agente
+  document.getElementById('agent-name-display').textContent =
+    currentAgent.name || currentAgent.email || 'Agente';
+
+  // Construir tabs según rol
+  buildTabs();
+
+  // Verificar horario SOLO para asesores
+  if (!isAdmin) {
+    checkScheduleAndMaybeLock();
+  } else {
+    showApp();
+  }
+}
+
+function buildTabs() {
+  const tabs = document.getElementById('topbar-tabs');
+  tabs.innerHTML = '';
+
+  // Tab embudo: todos lo ven
+  addTab(tabs, 'embudo', '🔀 Embudo', true);
+
+  if (isAdmin) {
+    addTab(tabs, 'asignacion', '👥 Asignación', false, true);
+    addTab(tabs, 'horario', '🔒 Horario', false);
+  }
+}
+
+function addTab(container, id, label, active, hasBadge) {
+  const btn = document.createElement('button');
+  btn.className = 'tab-btn' + (active ? ' active' : '');
+  btn.dataset.tab = id;
+  btn.innerHTML = label + (hasBadge ? ' <span class="tab-badge amber" id="pending-badge">0</span>' : '');
+  btn.onclick = () => switchTab(id, btn);
+  container.appendChild(btn);
+  if (active) switchTab(id, btn);
+}
+
+function switchTab(id, btn) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
   btn.classList.add('active');
-  const T={dashboard:'Dashboard',embudo:'Embudo de ventas',asignacion:'Asignación equitativa',bloqueo:'Horario y bloqueo',config:'Configuración'};
-  document.getElementById('topbar-title').textContent=T[id]||id;
-  if(id==='embudo') renderKanban();
-  if(id==='asignacion') renderAsig();
-  if(id==='bloqueo'){renderLock();startOTP();}
+  document.getElementById('sec-' + id).classList.add('active');
+
+  if (id === 'embudo')     loadKanban();
+  if (id === 'asignacion') { loadAsignacion(); startPendingRefresh(); }
+  if (id === 'horario')    { renderLockStatus(); startOTP(); }
 }
 
-// CLOCK
-function tick(){
-  const now=new Date();
-  document.getElementById('topbar-time').textContent=
-    now.toLocaleString('es-CO',{timeZone:'America/Bogota',weekday:'short',hour:'2-digit',minute:'2-digit'})+' Bogotá';
+function showApp() {
+  show('app');
+  renderLockBadge();
+  setInterval(renderLockBadge, 30000);
 }
-setInterval(tick,10000);tick();
 
-// KANBAN
-function renderKanban(){
-  const board=document.getElementById('kanban-board');
-  board.innerHTML='';
-  Object.entries(KANBAN).forEach(([colId,col])=>{
-    const colEl=document.createElement('div');
-    colEl.className='k-col';
-    colEl.innerHTML=`<div class="k-col-header"><span class="k-col-title" style="color:${col.col}">${col.title}</span><span class="k-count">${col.items.length}</span></div>`;
-    const zone=document.createElement('div');
-    zone.className='k-drop-zone';zone.dataset.col=colId;
-    col.items.forEach(item=>{
-      const card=document.createElement('div');
-      card.className='k-card';card.draggable=true;card.dataset.id=item.id;card.dataset.col=colId;
-      card.innerHTML=`<div class="k-card-name">${item.name}</div><div class="k-card-preview">${item.preview}</div><div class="k-card-footer"><span class="k-tag ${TAG_CLS[item.tag]}">${TAG_LBL[item.tag]}</span>${item.asesor?`<span class="k-assignee">· ${item.asesor}</span>`:''}</div>`;
-      card.addEventListener('dragstart',e=>{e.dataTransfer.setData('text/plain',JSON.stringify({id:item.id,col:colId}));card.classList.add('dragging');});
-      card.addEventListener('dragend',()=>card.classList.remove('dragging'));
+// ══ HORARIO Y BLOQUEO ══════════════════════════════════════════════
+function getMinutes(timeStr) {
+  const [h, m] = timeStr.split(':').map(Number);
+  return h * 60 + m;
+}
+
+function getBogotaMinutes() {
+  const now = new Date();
+  const utc = now.getTime() + now.getTimezoneOffset() * 60000;
+  const bog = new Date(utc + (-5 * 60) * 60000);
+  return bog.getHours() * 60 + bog.getMinutes();
+}
+
+function getBogotaTime() {
+  const now = new Date();
+  const utc = now.getTime() + now.getTimezoneOffset() * 60000;
+  const bog = new Date(utc + (-5 * 60) * 60000);
+  return bog.toLocaleTimeString('es-CO', {hour:'2-digit', minute:'2-digit'});
+}
+
+function isInSchedule() {
+  const min = getBogotaMinutes();
+  return min >= getMinutes(SCHEDULE.start) && min < getMinutes(SCHEDULE.end);
+}
+
+function checkScheduleAndMaybeLock() {
+  if (lockBypassActive) { showApp(); return; }
+  if (isInSchedule()) {
+    showApp();
+  } else {
+    showLockOverlay();
+  }
+}
+
+function showLockOverlay() {
+  document.getElementById('lo-start').textContent = formatTime(SCHEDULE.start);
+  document.getElementById('lo-end').textContent = formatTime(SCHEDULE.end);
+  show('lock-overlay');
+  
+  // Reloj en overlay
+  setInterval(() => {
+    document.getElementById('lock-clock').textContent = 'Hora actual: ' + getBogotaTime() + ' (Bogotá)';
+    // Re-check cada minuto
+    if (isInSchedule() && !lockBypassActive) {
+      hide('lock-overlay');
+      showApp();
+    }
+  }, 10000);
+  document.getElementById('lock-clock').textContent = 'Hora actual: ' + getBogotaTime() + ' (Bogotá)';
+}
+
+function formatTime(t) {
+  const [h, m] = t.split(':').map(Number);
+  const ampm = h >= 12 ? 'PM' : 'AM';
+  return (h % 12 || 12) + ':' + String(m).padStart(2,'0') + ' ' + ampm;
+}
+
+function verifyOverlayOTP() {
+  const entered = document.getElementById('overlay-otp').value.trim();
+  const ok = checkOTP(entered);
+  document.getElementById('overlay-otp').value = '';
+  if (ok) {
+    lockBypassActive = true;
+    hide('lock-overlay');
+    showApp();
+    toast('Acceso de emergencia concedido. Sin asignación automática.', 'ok');
+  } else {
+    document.getElementById('overlay-otp-err').textContent = 'Código incorrecto o expirado';
+    setTimeout(() => { document.getElementById('overlay-otp-err').textContent = ''; }, 3000);
+  }
+}
+
+function renderLockBadge() {
+  const active = isInSchedule();
+  const badge = document.getElementById('topbar-lock-badge');
+  if (badge) {
+    badge.textContent = active ? 'Activo' : 'Fuera horario';
+    badge.className = 'topbar-lock ' + (active ? 'on' : 'off');
+  }
+}
+
+function renderLockStatus() {
+  const active = isInSchedule();
+  const bar = document.getElementById('lsbar');
+  bar.className = 'lock-status-bar ' + (active ? 'on' : 'off');
+  document.getElementById('lsb-icon').textContent = active ? '🔓' : '🔒';
+  document.getElementById('lsb-title').textContent = active ? 'Sistema activo — horario laboral' : 'Sistema bloqueado — fuera de horario';
+  document.getElementById('lsb-sub').textContent = active
+    ? 'Chats se asignan al asesor con menos carga'
+    : 'Asesores ven pantalla de bloqueo. Admins acceden siempre.';
+  document.getElementById('h-start').value = SCHEDULE.start;
+  document.getElementById('h-end').value = SCHEDULE.end;
+}
+
+async function saveSchedule() {
+  SCHEDULE.start = document.getElementById('h-start').value;
+  SCHEDULE.end = document.getElementById('h-end').value;
+  renderLockStatus();
+  try {
+    await fetch(WH.horario, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ hora_inicio: SCHEDULE.start, hora_fin: SCHEDULE.end })
+    });
+  } catch(e) {}
+  showResult('schedule-result', '✓ Horario guardado: ' + SCHEDULE.start + ' – ' + SCHEDULE.end, true);
+  toast('Horario actualizado', 'ok');
+}
+
+// ══ OTP ════════════════════════════════════════════════════════════
+function genOTP(epoch) {
+  let h = 2166136261;
+  const s = String(7391 * epoch);
+  for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = (h * 16777619) >>> 0; }
+  return String(100000 + (h % 900000));
+}
+
+function checkOTP(entered) {
+  const ep = Math.floor(Date.now() / 30000);
+  return entered === genOTP(ep) || entered === genOTP(ep - 1);
+}
+
+function startOTP() {
+  if (otpTick) clearInterval(otpTick);
+  function tick() {
+    const ep = Math.floor(Date.now() / 30000);
+    const rem = 30 - (Math.floor(Date.now() / 1000) % 30);
+    const el = document.getElementById('admin-otp');
+    if (el) el.textContent = genOTP(ep);
+    const bar = document.getElementById('admin-otp-bar');
+    if (bar) bar.style.width = (rem / 30 * 100) + '%';
+    const timer = document.getElementById('admin-otp-timer');
+    if (timer) timer.textContent = 'Expira en ' + rem + 's';
+  }
+  tick(); otpTick = setInterval(tick, 500);
+}
+
+function verifyAdminOTP() {
+  const v = document.getElementById('admin-otp-input').value.trim();
+  document.getElementById('admin-otp-input').value = '';
+  showResult('admin-otp-result', checkOTP(v) ? '✓ Código válido' : '✗ Código incorrecto', checkOTP(v));
+}
+
+// ══ KANBAN — CARGA REAL DESDE CHATWOOT ════════════════════════════
+async function loadKanban() {
+  const board = document.getElementById('kanban-board');
+  board.innerHTML = '<div class="kcard-loading">Cargando conversaciones...</div>';
+
+  try {
+    // Cargar conversaciones de Chatwoot
+    // Para admin: todas; para asesor: solo las suyas
+    let url = `/api/v1/accounts/${ACCOUNT_ID}/conversations?status=open&page=1`;
+    if (!isAdmin) url += `&assignee_type=assigned`;
+
+    const data = await cwFetch(url);
+    if (!data || !data.data) throw new Error('Sin datos');
+
+    const convs = data.data.payload || [];
+
+    // Inicializar estructura kanban desde localStorage (persistencia local)
+    const saved = localStorage.getItem('kanban_v2_' + ACCOUNT_ID);
+    kanbanData = saved ? JSON.parse(saved) : initKanban();
+
+    // Mapear conversaciones de Chatwoot a tarjetas del kanban
+    // Las que no están en kanban se agregan a "nuevo"
+    const allIds = new Set();
+    Object.values(kanbanData).forEach(col => col.items.forEach(i => allIds.add(i.cwId)));
+
+    convs.forEach(conv => {
+      // Solo mostrar chats del asesor si no es admin
+      if (!isAdmin && conv.meta?.assignee?.id !== currentAgent.id) return;
+
+      if (!allIds.has(conv.id)) {
+        // Determinar etiqueta desde labels de Chatwoot
+        let tag = 'cold';
+        if (conv.labels && conv.labels.includes('lead_ganado')) tag = 'won';
+        else if (conv.labels && conv.labels.length > 0) tag = 'warm';
+
+        kanbanData.nuevo.items.push({
+          id: 'cw_' + conv.id,
+          cwId: conv.id,
+          name: conv.meta?.sender?.name || 'Sin nombre',
+          preview: getLastMessage(conv),
+          tag,
+          asesor: conv.meta?.assignee?.name || '',
+          mine: conv.meta?.assignee?.id === currentAgent.id
+        });
+      }
+    });
+
+    saveKanban();
+    renderKanban();
+  } catch(e) {
+    board.innerHTML = '<div class="kcard-loading" style="color:var(--red)">Error al cargar. Verifica tu token.</div>';
+  }
+}
+
+function initKanban() {
+  return {
+    nuevo:      { items: [] },
+    contactado: { items: [] },
+    cotizado:   { items: [] },
+    negociando: { items: [] },
+    cerrado:    { items: [] },
+  };
+}
+
+function saveKanban() {
+  localStorage.setItem('kanban_v2_' + ACCOUNT_ID, JSON.stringify(kanbanData));
+}
+
+function getLastMessage(conv) {
+  if (conv.messages && conv.messages.length > 0) {
+    const last = conv.messages[conv.messages.length - 1];
+    return (last.content || '').substring(0, 50);
+  }
+  return 'Ver conversación';
+}
+
+function renderKanban() {
+  const board = document.getElementById('kanban-board');
+  board.innerHTML = '';
+
+  Object.entries(COLS).forEach(([colId, col]) => {
+    const colData = kanbanData[colId] || { items: [] };
+    const colEl = document.createElement('div');
+    colEl.className = 'kcol';
+    const head = document.createElement('div');
+    head.className = 'kcol-head';
+    head.innerHTML = `<span class="kcol-title" style="color:${col.color}">${col.title}</span><span class="kcol-count">${colData.items.length}</span>`;
+    colEl.appendChild(head);
+
+    const zone = document.createElement('div');
+    zone.className = 'kdrop';
+    zone.dataset.col = colId;
+
+    colData.items.forEach(item => {
+      const card = document.createElement('div');
+      card.className = 'kcard' + (item.mine ? ' mine' : '');
+      card.draggable = true;
+      card.dataset.id = item.id;
+      card.dataset.col = colId;
+      card.innerHTML = `
+        <button class="kcard-open" onclick="openConv(${item.cwId})" title="Abrir en Chatwoot">↗</button>
+        <div class="kcard-name">${item.name}</div>
+        <div class="kcard-preview">${item.preview}</div>
+        <div class="kcard-footer">
+          <span class="ktag ${TAG_C[item.tag]}">${TAG_L[item.tag]}</span>
+          ${item.asesor ? `<span class="kcard-asesor">· ${item.asesor.split(' ')[0]}</span>` : ''}
+        </div>`;
+      card.addEventListener('dragstart', e => {
+        e.dataTransfer.setData('text/plain', JSON.stringify({id: item.id, col: colId}));
+        card.classList.add('dragging');
+      });
+      card.addEventListener('dragend', () => card.classList.remove('dragging'));
       zone.appendChild(card);
     });
-    zone.addEventListener('dragover',e=>{e.preventDefault();zone.classList.add('over');});
-    zone.addEventListener('dragleave',()=>zone.classList.remove('over'));
-    zone.addEventListener('drop',e=>{
-      e.preventDefault();zone.classList.remove('over');
-      const{id,col:fromCol}=JSON.parse(e.dataTransfer.getData('text/plain'));
-      if(fromCol===colId)return;
-      const fi=KANBAN[fromCol].items.findIndex(i=>i.id===id);
-      if(fi===-1)return;
-      const[item]=KANBAN[fromCol].items.splice(fi,1);
-      if(colId==='cerrado')item.tag='won';
-      KANBAN[colId].items.push(item);
+
+    zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('over'); });
+    zone.addEventListener('dragleave', () => zone.classList.remove('over'));
+    zone.addEventListener('drop', e => {
+      e.preventDefault(); zone.classList.remove('over');
+      const { id, col: fromCol } = JSON.parse(e.dataTransfer.getData('text/plain'));
+      if (fromCol === colId) return;
+      const fromItems = kanbanData[fromCol].items;
+      const idx = fromItems.findIndex(i => i.id === id);
+      if (idx === -1) return;
+      const [item] = fromItems.splice(idx, 1);
+      if (colId === 'cerrado') {
+        item.tag = 'won';
+        // Actualizar etiqueta en Chatwoot
+        if (item.cwId) addLabelChatwoot(item.cwId, 'lead_ganado');
+      }
+      kanbanData[colId].items.push(item);
+      saveKanban();
       renderKanban();
-      toast('Chat movido a '+col.title,'ok');
+      toast('Movido a ' + COLS[colId].title, 'ok');
     });
-    colEl.appendChild(zone);board.appendChild(colEl);
+
+    colEl.appendChild(zone);
+    board.appendChild(colEl);
   });
 }
 
-function addCard(){
-  const name=prompt('Nombre del cliente o número:');if(!name)return;
-  const preview=prompt('Destino o mensaje:')||'Nuevo contacto';
-  KANBAN.nuevo.items.push({id:'k'+Date.now(),name,preview,tag:'cold',asesor:''});
-  renderKanban();
+function openConv(cwId) {
+  if (!cwId) return;
+  // Notificar a Chatwoot para navegar a esa conversación
+  window.parent.postMessage({
+    type: 'navigate',
+    url: `/app/accounts/${ACCOUNT_ID}/conversations/${cwId}`
+  }, '*');
+  // Fallback: abrir en nueva pestaña
+  window.open(`${CHATWOOT_URL}/app/accounts/${ACCOUNT_ID}/conversations/${cwId}`, '_blank');
 }
 
-// ASIGNACIÓN
-function renderAsig(){
-  const list=document.getElementById('asesores-list');list.innerHTML='';
-  AGENTES.forEach((a,i)=>{
-    const el=document.createElement('div');el.className='asesor-item';
-    el.innerHTML=`<div class="av ${a.cls}">${a.init}</div>
-      <div class="asesor-info"><div class="asesor-name">${a.nombre}</div><div class="asesor-meta">ID ${a.id}</div></div>
-      <span class="asesor-chats">${a.asignados} chats</span>
-      <label class="toggle-wrap" style="margin-left:8px">
-        <input type="checkbox" ${a.activo?'checked':''} onchange="AGENTES[${i}].activo=this.checked;updMetrics()">
-        <span class="toggle-track"></span><span class="toggle-thumb"></span>
+async function addLabelChatwoot(convId, label) {
+  try {
+    await cwFetch(`/api/v1/accounts/${ACCOUNT_ID}/conversations/${convId}/labels`, 'POST', { labels: [label] });
+  } catch(e) {}
+}
+
+// ══ ASIGNACIÓN ══════════════════════════════════════════════════════
+async function loadAsignacion() {
+  renderAsesores();
+  await loadPendingChats();
+}
+
+function renderAsesores() {
+  const list = document.getElementById('asesores-list');
+  list.innerHTML = '';
+  AGENTES.forEach((a, i) => {
+    const el = document.createElement('div');
+    el.className = 'asesor-row';
+    el.innerHTML = `
+      <div class="av ${a.cls}">${a.init}</div>
+      <div class="asesor-info">
+        <div class="asesor-name">${a.nombre}</div>
+        <div class="asesor-meta">ID ${a.id} · ${a.asignados} asignados hoy</div>
+      </div>
+      <span class="asesor-count">${a.asignados}</span>
+      <label class="toggle" style="margin-left:6px">
+        <input type="checkbox" ${a.activo ? 'checked' : ''} onchange="AGENTES[${i}].activo=this.checked;updMetrics()">
+        <span class="ttrack"></span><span class="tthumb"></span>
       </label>`;
     list.appendChild(el);
   });
-  renderQueue();updMetrics();
+  updMetrics();
 }
 
-function renderQueue(){
-  const list=document.getElementById('queue-list');list.innerHTML='';
-  PENDING.forEach(p=>{
-    const el=document.createElement('div');el.className='queue-item';
-    el.innerHTML=`<span class="q-dot ${p.assigned?'q-assigned':'q-pending'}"></span>
-      <span class="q-name">${p.name}</span><span class="q-time">${p.time}</span>
-      <span class="q-badge ${p.assigned?'qb-assigned':'qb-pending'}">${p.assigned?p.assignee:'Pendiente'}</span>`;
+async function loadPendingChats() {
+  try {
+    const data = await cwFetch(`/api/v1/accounts/${ACCOUNT_ID}/conversations?status=pending&page=1`);
+    pendingChats = (data?.data?.payload || []).map(c => ({
+      id: c.id,
+      name: c.meta?.sender?.name || 'Sin nombre',
+      time: timeAgo(c.created_at),
+      assigned: false,
+      assignee: ''
+    }));
+    // También buscar conversaciones sin asignar (open pero sin assignee)
+    const data2 = await cwFetch(`/api/v1/accounts/${ACCOUNT_ID}/conversations?status=open&assignee_type=unassigned&page=1`);
+    const unassigned = (data2?.data?.payload || []).map(c => ({
+      id: c.id,
+      name: c.meta?.sender?.name || 'Sin nombre',
+      time: timeAgo(c.created_at),
+      assigned: false,
+      assignee: ''
+    }));
+    pendingChats = [...pendingChats, ...unassigned];
+    // Deduplicar
+    const seen = new Set();
+    pendingChats = pendingChats.filter(c => { if(seen.has(c.id)) return false; seen.add(c.id); return true; });
+  } catch(e) {
+    pendingChats = [];
+  }
+  renderQueue();
+  updMetrics();
+}
+
+function startPendingRefresh() {
+  setTimeout(loadPendingChats, 30000); // refrescar cada 30s
+}
+
+function renderQueue() {
+  const list = document.getElementById('queue-list');
+  if (!list) return;
+  list.innerHTML = '';
+  if (pendingChats.length === 0) {
+    list.innerHTML = '<div style="font-size:11px;color:var(--text3);text-align:center;padding:12px">Sin chats pendientes ✓</div>';
+    return;
+  }
+  pendingChats.forEach(c => {
+    const el = document.createElement('div');
+    el.className = 'queue-row';
+    el.innerHTML = `
+      <span class="qdot ${c.assigned ? 'a' : 'p'}"></span>
+      <span class="qname">${c.name}</span>
+      <span class="qtime">${c.time}</span>
+      <span class="qbadge ${c.assigned ? 'qba' : 'qbp'}">${c.assigned ? c.assignee.split(' ')[0] : 'Pendiente'}</span>`;
     list.appendChild(el);
   });
 }
 
-async function runRoundRobin(){
-  const activos=AGENTES.filter(a=>a.activo);
-  if(!activos.length){showRes('assign-result','⚠ No hay asesores activos seleccionados',false);return;}
-  const pending=PENDING.filter(p=>!p.assigned);
-  if(!pending.length){showRes('assign-result','✓ No hay chats pendientes en cola',true);return;}
-  showRes('assign-result','Conectando con n8n...', true);
-  try{
-    const res=await fetch(WH.asignar,{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({asesores_activos:activos.map(a=>a.id),account_id:ACCOUNT_ID})
+async function runRoundRobin() {
+  const activos = AGENTES.filter(a => a.activo);
+  if (!activos.length) { showResult('rr-result', '⚠ Activa al menos un asesor', false); return; }
+  const pending = pendingChats.filter(p => !p.assigned);
+  if (!pending.length) { showResult('rr-result', '✓ No hay chats pendientes', true); return; }
+
+  const btn = document.getElementById('rr-btn');
+  btn.disabled = true; btn.textContent = 'Asignando...';
+
+  try {
+    const res = await fetch(WH.asignar, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ asesores_activos: activos.map(a => a.id), account_id: ACCOUNT_ID })
     });
-    const data=await res.json();
-    if(data.ok){
-      pending.forEach((chat,i)=>{
-        const a=activos[rrIdx%activos.length];
-        chat.assigned=true;chat.assignee=a.nombre;a.asignados++;rrIdx++;
+    const data = await res.json();
+    if (data.ok) {
+      pending.forEach((chat, i) => {
+        const a = activos[rrIndex % activos.length];
+        chat.assigned = true; chat.assignee = a.nombre;
+        a.asignados++; rrIndex++;
       });
-      renderAsig();
-      showRes('assign-result',`✓ ${pending.length} chats asignados entre ${activos.length} asesores`,true);
-      toast(data.mensaje||'Asignación completada en Chatwoot','ok');
+      renderQueue(); renderAsesores();
+      showResult('rr-result', `✓ ${pending.length} chats asignados entre ${activos.length} asesores`, true);
+      toast(data.mensaje || 'Asignación completada', 'ok');
     } else {
-      showRes('assign-result',data.mensaje||'Error en asignación',false);
+      showResult('rr-result', data.mensaje || 'Error', false);
     }
-  } catch(e){
-    // Fallback local si n8n no responde aún
-    pending.forEach((chat,i)=>{
-      const a=activos[rrIdx%activos.length];
-      chat.assigned=true;chat.assignee=a.nombre;a.asignados++;rrIdx++;
+  } catch(e) {
+    // Fallback local
+    pending.forEach((chat, i) => {
+      const a = activos[rrIndex % activos.length];
+      chat.assigned = true; chat.assignee = a.nombre;
+      a.asignados++; rrIndex++;
     });
-    renderAsig();
-    showRes('assign-result',`✓ ${pending.length} chats asignados localmente`,true);
-    toast('n8n no respondió — asignación local aplicada','err');
+    renderQueue(); renderAsesores();
+    showResult('rr-result', `✓ ${pending.length} asignados (n8n no respondió, modo local)`, true);
   }
+
+  btn.disabled = false; btn.textContent = '↻ Asignar equitativamente';
+  updMetrics();
 }
 
-function updMetrics(){
-  document.getElementById('m-activos').textContent=AGENTES.filter(a=>a.activo).length;
-  document.getElementById('m-pendientes').textContent=PENDING.filter(p=>!p.assigned).length;
-  document.getElementById('badge-pending').textContent=PENDING.filter(p=>!p.assigned).length;
+function updMetrics() {
+  const act = AGENTES.filter(a => a.activo).length;
+  const pen = pendingChats.filter(p => !p.assigned).length;
+  const tot = AGENTES.reduce((s, a) => s + a.asignados, 0);
+  const el1 = document.getElementById('m-act'); if(el1) el1.textContent = act;
+  const el2 = document.getElementById('m-pen'); if(el2) el2.textContent = pen;
+  const el3 = document.getElementById('m-tot'); if(el3) el3.textContent = tot;
+  const badge = document.getElementById('pending-badge'); if(badge) badge.textContent = pen;
 }
 
-// CHATWOOT SYNC
-async function syncChatwoot(){
-  toast('Sincronizando con Chatwoot...','ok');
-  try{
-    const res=await fetch(`${CHATWOOT_URL}/api/v1/accounts/${ACCOUNT_ID}/conversations?status=open`,{
-      headers:{'api_access_token':API_KEY}
-    });
-    const data=await res.json();
-    const total=data.data?.meta?.all_count||'?';
-    document.getElementById('m-abiertos').textContent=total;
-    toast(`Chatwoot: ${total} conversaciones abiertas`,'ok');
-  }catch(e){toast('Error al conectar con Chatwoot','err');}
+// ══ HELPERS API ═════════════════════════════════════════════════════
+async function cwFetch(path, method = 'GET', body = null, token = null) {
+  const t = token || apiToken;
+  const opts = {
+    method,
+    headers: { 'api_access_token': t, 'Content-Type': 'application/json' }
+  };
+  if (body) opts.body = JSON.stringify(body);
+  const base = path.startsWith('/api') ? CHATWOOT_URL : CHATWOOT_URL;
+  const res = await fetch(base + path, opts);
+  if (!res.ok) throw new Error(res.status);
+  return res.json();
 }
 
-// LOCK
-function renderLock(){
-  const now=new Date();
-  const bog=new Date(now.getTime()+now.getTimezoneOffset()*60000+(-5*60)*60000);
-  const min=bog.getHours()*60+bog.getMinutes();
-  const [hs,ms]=document.getElementById('time-start').value.split(':').map(Number);
-  const [he,me]=document.getElementById('time-end').value.split(':').map(Number);
-  const active=min>=hs*60+ms&&min<he*60+me;
-  const bar=document.getElementById('lock-bar');
-  bar.className='lock-status-bar '+(active?'active':'blocked');
-  document.getElementById('lock-icon').textContent=active?'🔓':'🔒';
-  document.getElementById('lock-text').textContent=active?'Sistema activo — horario laboral':'Sistema bloqueado — fuera de horario';
-  document.getElementById('lock-sub').textContent=active
-    ?'Chats se asignan al asesor con menos carga (n8n)'
-    :'Chats quedan en cola hasta las '+document.getElementById('time-start').value+'. Usa OTP para emergencias.';
-  const sl=document.getElementById('sidebar-lock');
-  sl.textContent=active?'Activo':'Bloqueado';
-  sl.className='lock-indicator '+(active?'active':'locked');
-  document.getElementById('m-sistema').textContent=active?'Activo':'Bloqueado';
+function timeAgo(ts) {
+  if (!ts) return '';
+  const sec = Math.floor((Date.now() - ts * 1000) / 1000);
+  if (sec < 60) return 'ahora';
+  if (sec < 3600) return Math.floor(sec/60) + 'm';
+  if (sec < 86400) return Math.floor(sec/3600) + 'h';
+  return Math.floor(sec/86400) + 'd';
 }
 
-async function saveSchedule(){
-  const s=document.getElementById('time-start').value;
-  const e=document.getElementById('time-end').value;
-  try{
-    await fetch(WH.horario,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({hora_inicio:s,hora_fin:e})});
-  }catch(err){}
-  renderLock();toast('Horario guardado: '+s+' – '+e,'ok');
+// ══ UI HELPERS ══════════════════════════════════════════════════════
+function show(id) { document.getElementById(id).classList.remove('hidden'); }
+function hide(id) { document.getElementById(id).classList.add('hidden'); }
+function setErr(id, msg) { document.getElementById(id).textContent = msg; }
+
+function showResult(id, msg, ok) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.textContent = msg;
+  el.className = 'result ' + (ok ? 'ok' : 'err');
+  setTimeout(() => { if(el){ el.textContent=''; el.className='result'; }}, 5000);
 }
 
-// OTP
-let otpTick;
-function genOTP(){
-  const ep=Math.floor(Date.now()/30000);
-  let h=2166136261;const s=String(7391*ep);
-  for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=(h*16777619)>>>0;}
-  return String(100000+(h%900000));
+function toast(msg, type) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast ' + type + ' show';
+  setTimeout(() => t.classList.remove('show'), 3500);
 }
-function startOTP(){
-  if(otpTick)clearInterval(otpTick);
-  function t(){
-    document.getElementById('otp-display').textContent=genOTP();
-    const rem=30-(Math.floor(Date.now()/1000)%30);
-    document.getElementById('otp-fill').style.width=(rem/30*100)+'%';
-    document.getElementById('otp-timer').textContent='Expira en '+rem+'s';
-  }
-  t();otpTick=setInterval(t,500);
-}
-async function verifyOTP(){
-  const v=document.getElementById('otp-input').value.trim();
-  const cur=genOTP();
-  const ep=Math.floor(Date.now()/30000);
-  let h=2166136261;const s=String(7391*(ep-1));
-  for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=(h*16777619)>>>0;}
-  const prev=String(100000+(h%900000));
-  const ok=v===cur||v===prev;
-  document.getElementById('otp-input').value='';
-  try{await fetch(WH.otp,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({codigo:v})});}catch(e){}
-  if(ok){showRes('otp-result','✓ Acceso de emergencia concedido — sin asignación automática',true);toast('Acceso de emergencia activo','ok');}
-  else {showRes('otp-result','✗ Código incorrecto o expirado',false);}
-}
-
-// HELPERS
-function showRes(id,msg,ok){
-  const el=document.getElementById(id);el.textContent=msg;
-  el.className='result-msg '+(ok?'result-ok':'result-err');
-  setTimeout(()=>{el.textContent='';el.className='result-msg';},5000);
-}
-function toast(msg,type){
-  const t=document.getElementById('toast');t.textContent=msg;
-  t.className='toast '+type+' show';setTimeout(()=>t.classList.remove('show'),3500);
-}
-function copyText(el,url){
-  navigator.clipboard.writeText(url||el.dataset.url||el.textContent.trim());
-  const lbl=el.querySelector('.copy-lbl');
-  if(lbl){lbl.textContent='✓ Copiado';setTimeout(()=>lbl.textContent='Copiar',2000);}
-  toast('URL copiada','ok');
-}
-
-// INIT
-renderKanban();renderAsig();renderLock();startOTP();
-setInterval(renderLock,30000);
 </script>
 </body>
 </html>
